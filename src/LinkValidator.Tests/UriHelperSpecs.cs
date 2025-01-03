@@ -66,10 +66,15 @@ public class UriHelperSpecs
         { new AbsoluteUri(new Uri("http://example.com")), "some/path", new AbsoluteUri(new Uri("http://example.com/some/path")) },
         { new AbsoluteUri(new Uri("https://example.com")), "some/path", new AbsoluteUri(new Uri("https://example.com/some/path")) },
         
-        // this case currently fails
+        // relative uris with a folder
         { new AbsoluteUri(new Uri("http://example.com/some")), "../path", new AbsoluteUri(new Uri("http://example.com/path")) },
         { new AbsoluteUri(new Uri("http://example.com/some/fart")), "../path", new AbsoluteUri(new Uri("http://example.com/some/path")) },
         { new AbsoluteUri(new Uri("http://example.com/some/llm/rag")), "../../path", new AbsoluteUri(new Uri("http://example.com/some/path")) },
+        
+        // relative uris with a file
+        { new AbsoluteUri(new Uri("http://example.com/some.html")), "../path.html", new AbsoluteUri(new Uri("http://example.com/path.html")) },
+        { new AbsoluteUri(new Uri("http://example.com/some/fart.html")), "../path", new AbsoluteUri(new Uri("http://example.com/some/path")) },
+        { new AbsoluteUri(new Uri("http://example.com/some/llm/rag.html")), "../../path", new AbsoluteUri(new Uri("http://example.com/some/path")) },
         
         // HTTP vs. HTTPS - should normalize to use whatever the baseUri uses
         { new AbsoluteUri(new Uri("https://example.com")), "http://example.com/some/path", new AbsoluteUri(new Uri("https://example.com/some/path")) },
