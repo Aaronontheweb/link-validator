@@ -4,16 +4,6 @@ namespace LinkValidator.Util;
 
 public static class UriHelpers
 {
-    public static string NormalizeUrl(string baseUrl, string href)
-    {
-        if (Uri.TryCreate(new Uri(baseUrl), href, out Uri? absoluteUri))
-        {
-            return absoluteUri.GetLeftPart(UriPartial.Path);
-        }
-
-        return href;
-    }
-
     public static bool CanMakeAbsoluteHttpUri(AbsoluteUri baseUri, string rawUri)
     {
         // this will not return true for things like "mailto:" or "tel:" links
@@ -43,27 +33,59 @@ public static class UriHelpers
     }
 
     public static AbsoluteUri ToAbsoluteUri(AbsoluteUri baseUri, string rawUri)
+{
+    Uri resolvedUri;
+
+    if (!Uri.IsWellFormedUriString(rawUri, UriKind.Absolute))
     {
-        if (!Uri.IsWellFormedUriString(rawUri, UriKind.Absolute))
-        {
-            return new AbsoluteUri(new Uri(baseUri.Value, rawUri));
-        }
+        var basePath = baseUri.Value.GetLeftPart(UriPartial.Path).TrimEnd('/');
+        
+        // Split base path and raw URI into segments
+        var baseSegments = basePath.Split('/');
+        var relativeSegments = rawUri.Split('/');
 
-        var resultUri = new Uri(rawUri);
+        // Result list to accumulate segments
+        var finalSegments = new List<string>(baseSegments);
 
-        // Ensure the scheme matches the base URI
-        if (resultUri.Scheme != baseUri.Value.Scheme)
+        foreach (var segment in relativeSegments)
         {
-            var builder = new UriBuilder(resultUri)
+            if (segment == "..")
             {
-                Scheme = baseUri.Value.Scheme,
-                Port = -1  // Prevents adding the default port
-            };
-            return new AbsoluteUri(builder.Uri);
+                // Pop last segment if it's not the root
+                if (finalSegments.Count > 3) // Preserve 'http://example.com'
+                {
+                    finalSegments.RemoveAt(finalSegments.Count - 1);
+                }
+            }
+            else if (segment != "." && !string.IsNullOrEmpty(segment))
+            {
+                finalSegments.Add(segment);
+            }
         }
 
-        return new AbsoluteUri(resultUri);
+        // Rebuild the URI path
+        var combinedPath = string.Join("/", finalSegments);
+        resolvedUri = new Uri(combinedPath, UriKind.Absolute);
     }
+    else
+    {
+        resolvedUri = new Uri(rawUri);
+    }
+
+    // Ensure the scheme matches the base URI
+    if (resolvedUri.Scheme != baseUri.Value.Scheme)
+    {
+        var builder = new UriBuilder(resolvedUri)
+        {
+            Scheme = baseUri.Value.Scheme,
+            Port = -1  // Prevents adding the default port
+        };
+        return new AbsoluteUri(builder.Uri);
+    }
+
+    return new AbsoluteUri(resolvedUri);
+}
+
 
     public static RelativeUri ToRelativeUri(AbsoluteUri baseUri, AbsoluteUri foundUri)
     {
