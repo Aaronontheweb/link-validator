@@ -56,7 +56,7 @@ public class ParseHelperSpecs
     public void ParseHelper_should_return_absolute_uris_when_given_absolute_links()
     {
         // Arrange
-        var uri = new AbsoluteUri(new Uri("https://example.com"));
+        var uri = new AbsoluteUri(new Uri("https://example.com")); // using a different scheme (HTTPS)
         
         // Act
         var uris = ParseHelpers.ParseLinks(AbsoluteHtml, uri);
@@ -68,5 +68,34 @@ public class ParseHelperSpecs
         uris.Should().Contain(new AbsoluteUri(new Uri("https://example.com/about")));
         uris.Should().Contain(new AbsoluteUri(new Uri("https://example.com/contact")));
         uris.Should().Contain(new AbsoluteUri(new Uri("https://example.com/faq")));
+    }
+    
+    private const string MixedHtml = """
+                                        
+                                                <html>
+                                                    <head>
+                                                        <title>Test Page</title>
+                                                    </head>
+                                                    <body>
+                                                        <a href="/about">About</a>
+                                                        <a href="http://example.com/contact">Contact</a>
+                                                        <a href="http://fakeurl.com/faq">FAQ</a>
+                                                    </body>
+                                                </html>
+                                        """;
+    
+    [Fact]
+    public void ParseHelper_should_return_absolute_uris_when_given_mixed_links()
+    {
+        // Arrange
+        var uri = new AbsoluteUri(new Uri("http://example.com"));
+        
+        // Act
+        var uris = ParseHelpers.ParseLinks(MixedHtml, uri);
+        
+        // Assert
+        uris.Should().HaveCount(2); // don't count the FAKEURL one
+        uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/about")));
+        uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/contact")));
     }
 }
