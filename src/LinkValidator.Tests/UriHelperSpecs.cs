@@ -6,6 +6,25 @@ namespace LinkValidator.Tests;
 
 public class UriHelperSpecs
 {
+    public static readonly TheoryData<AbsoluteUri, string, bool> CanMakeAbsoluteUriData = new()
+    {
+        { new AbsoluteUri(new Uri("http://example.com")), "http://example.com/some/path", true },
+        { new AbsoluteUri(new Uri("http://example.com")), "https://example.com/some/path", true },
+        { new AbsoluteUri(new Uri("http://example.com")), "/some/path", true },
+        { new AbsoluteUri(new Uri("http://example.com")), "mailto:fart@example.com", false }
+    };
+    
+    [Theory]
+    [MemberData(nameof(CanMakeAbsoluteUriData))]
+    public void CanMakeAbsoluteUri_should_return_expected_results(AbsoluteUri baseUri, string rawUri, bool expected)
+    {
+        // Act
+        var result = UriHelpers.CanMakeAbsoluteHttpUri(baseUri, rawUri);
+        
+        // Assert
+        result.Should().Be(expected);
+    }
+    
     [Theory]
     [InlineData("http://example.com", "http://example.com/some/path")]
     [InlineData("https://example.com", "http://example.com/some/path")]
@@ -39,6 +58,22 @@ public class UriHelperSpecs
         // Assert
         result.Should().BeFalse();
     }
-
     
+    public static readonly TheoryData<AbsoluteUri, string, AbsoluteUri> ToAbsoluteUriData = new()
+    {
+        { new AbsoluteUri(new Uri("http://example.com")), "http://example.com/some/path", new AbsoluteUri(new Uri("http://example.com/some/path")) },
+        { new AbsoluteUri(new Uri("http://example.com")), "/some/path", new AbsoluteUri(new Uri("http://example.com/some/path")) },
+        { new AbsoluteUri(new Uri("http://example.com")), "some/path", new AbsoluteUri(new Uri("http://example.com/some/path")) }
+    };
+    
+    [Theory]
+    [MemberData(nameof(ToAbsoluteUriData))]
+    public void ToAbsoluteUri_should_return_expected_results(AbsoluteUri baseUri, string rawUri, AbsoluteUri expected)
+    {
+        // Act
+        var result = UriHelpers.ToAbsoluteUri(baseUri, rawUri);
+        
+        // Assert
+        result.Should().Be(expected);
+    }
 }

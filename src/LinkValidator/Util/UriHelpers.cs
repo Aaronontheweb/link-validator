@@ -13,10 +13,10 @@ public static class UriHelpers
         return href;
     }
     
-    public static bool CanMakeAbsoluteUri(AbsoluteUri baseUri, string rawUri)
+    public static bool CanMakeAbsoluteHttpUri(AbsoluteUri baseUri, string rawUri)
     {
         // this will not return true for things like "mailto:" or "tel:" links
-        if (Uri.IsWellFormedUriString(rawUri, UriKind.Absolute))
+        if (Uri.IsWellFormedUriString(rawUri, UriKind.Absolute) && (rawUri.StartsWith(Uri.UriSchemeHttp) || rawUri.StartsWith(Uri.UriSchemeHttps)))
             return true;
         try
         {
