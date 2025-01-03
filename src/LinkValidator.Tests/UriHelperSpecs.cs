@@ -63,7 +63,12 @@ public class UriHelperSpecs
     {
         { new AbsoluteUri(new Uri("http://example.com")), "http://example.com/some/path", new AbsoluteUri(new Uri("http://example.com/some/path")) },
         { new AbsoluteUri(new Uri("http://example.com")), "/some/path", new AbsoluteUri(new Uri("http://example.com/some/path")) },
-        { new AbsoluteUri(new Uri("http://example.com")), "some/path", new AbsoluteUri(new Uri("http://example.com/some/path")) }
+        { new AbsoluteUri(new Uri("http://example.com")), "some/path", new AbsoluteUri(new Uri("http://example.com/some/path")) },
+        { new AbsoluteUri(new Uri("https://example.com")), "some/path", new AbsoluteUri(new Uri("https://example.com/some/path")) },
+        
+        // HTTP vs. HTTPS - should normalize to use whatever the baseUri uses
+        { new AbsoluteUri(new Uri("https://example.com")), "http://example.com/some/path", new AbsoluteUri(new Uri("https://example.com/some/path")) },
+        { new AbsoluteUri(new Uri("http://example.com")), "https://example.com/some/path", new AbsoluteUri(new Uri("http://example.com/some/path")) }
     };
     
     [Theory]
