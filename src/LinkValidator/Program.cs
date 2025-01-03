@@ -25,10 +25,17 @@ class Program
             diffOption,
             strictOption
         };
-
+        
         rootCommand.SetHandler(async (url, output, diff, strict) =>
         {
-            using var system = ActorSystem.Create("CrawlerSystem", "akka.loglevel = INFO");
+            if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
+            {
+                await Console.Error.WriteLineAsync($"Invalid URL [{url}] - must be an absolute uri.");
+                Environment.Exit(1);
+                return;
+            }
+           
+            var system = ActorSystem.Create("CrawlerSystem", "akka.loglevel = INFO");
             var absoluteUri = new AbsoluteUri(new Uri(url));
             var results = await CrawlWebsite(system, absoluteUri);
             var markdown = GenerateMarkdown(absoluteUri, results);
