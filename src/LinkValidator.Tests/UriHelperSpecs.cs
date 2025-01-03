@@ -105,6 +105,17 @@ public class UriHelperSpecs
             new AbsoluteUri(new Uri("http://example.com/some/llm/rag.html")), "../../path",
             new AbsoluteUri(new Uri("http://example.com/some/path"))
         },
+        
+        // root-relative uris
+        // relative uris with a folder
+        {
+            new AbsoluteUri(new Uri("http://example.com/some")), "/path",
+            new AbsoluteUri(new Uri("http://example.com/path"))
+        },
+        {
+            new AbsoluteUri(new Uri("http://example.com/some/fart")), "/path/bar",
+            new AbsoluteUri(new Uri("http://example.com/path/bar"))
+        },
 
         // HTTP vs. HTTPS - should normalize to use whatever the baseUri uses
         {
