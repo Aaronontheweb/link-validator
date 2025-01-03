@@ -1,7 +1,9 @@
-﻿using System.Net;
+﻿using System.Collections.Immutable;
+using System.Net;
 using Akka.Actor;
 using Akka.Event;
 using Akka.Routing;
+using LinkValidator.Util;
 
 namespace LinkValidator.Actors;
 
@@ -51,10 +53,11 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
     private readonly ILoggingAdapter _log = Context.GetLogger(); 
     private readonly CrawlConfiguration _crawlConfiguration;
     private IActorRef _crawlers = ActorRefs.Nobody;
-
-    public IndexerActor(CrawlConfiguration crawlConfiguration)
+    private readonly TaskCompletionSource<ImmutableSortedDictionary<string, HttpStatusCode>> _completionSource;
+    public IndexerActor(CrawlConfiguration crawlConfiguration, TaskCompletionSource<ImmutableSortedDictionary<string, HttpStatusCode>> completionSource)
     {
         _crawlConfiguration = crawlConfiguration;
+        _completionSource = completionSource;
     }
 
     public Dictionary<AbsoluteUri, (CrawlStatus status, HttpStatusCode?)> IndexedDocuments { get; } = new();
@@ -83,6 +86,13 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
                 if (IsCrawlComplete)
                 {
                     _log.Info("Crawl complete!");
+                    
+                    var finalOutput =  IndexedDocuments
+                        .Where(x => x.Value.status == CrawlStatus.Visited)
+                        .ToImmutableSortedDictionary(x => UriHelpers.ToRelativeUri(_crawlConfiguration.BaseUrl, x.Key).ToString(), x => x.Value.Item2 ?? HttpStatusCode.NotFound);
+                    
+                    _completionSource.SetResult(finalOutput);
+                    
                     Context.Stop(Self);
                 }
                 break;
