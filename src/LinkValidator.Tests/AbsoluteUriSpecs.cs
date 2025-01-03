@@ -33,4 +33,17 @@ public class AbsoluteUriSpecs
         uri2.Should().Be(Uri1);
         Uri1.GetHashCode().Should().Be(uri2.GetHashCode());
     }
+    
+    [Fact]
+    public void Absolute_should_print_path()
+    {
+        // Arrange
+        var uri = new AbsoluteUri(new Uri("https://example.com/path-to-file.html", UriKind.Absolute));
+        
+        // Act
+        var result = uri.ToString();
+        
+        // Assert
+        result.Should().Be("https://example.com/path-to-file.html");
+    }
 }
