@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace LinkValidator.Actors;
 
 public record struct AbsoluteUri
@@ -25,4 +27,6 @@ public record struct RelativeUri
     }
 
     public Uri Value { get; }
+    
+    public override string ToString() => Value.ToString();
 }
