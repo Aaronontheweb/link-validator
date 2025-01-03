@@ -12,6 +12,8 @@ public record struct AbsoluteUri
     }
 
     public Uri Value { get; }
+    
+    public override string ToString() => Value.ToString();
 }
 
 /// <summary>
