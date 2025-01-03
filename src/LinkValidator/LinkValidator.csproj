@@ -10,6 +10,7 @@
     <ItemGroup>
       <PackageReference Include="Akka" />
       <PackageReference Include="HtmlAgilityPack" />
+      <PackageReference Include="Microsoft.Extensions.Http" />
       <PackageReference Include="System.CommandLine" />
     </ItemGroup>
 
