@@ -7,21 +7,27 @@ using static LinkValidator.Util.ParseHelpers;
 
 namespace LinkValidator.Actors;
 
-public record CrawlUrl(string Url);
-public record PageCrawled(string Url, HttpStatusCode StatusCode, IReadOnlyList<AbsoluteUri> Links);
+public record CrawlUrl(AbsoluteUri Url);
+public record PageCrawled(AbsoluteUri Url, HttpStatusCode StatusCode, IReadOnlyList<AbsoluteUri> Links);
 
 public sealed class CrawlerActor : UntypedActor, IWithStash
 {
     private readonly ILoggingAdapter _log = Context.GetLogger();
     private readonly CrawlConfiguration _crawlConfiguration;
     private readonly IActorRef _coordinator;
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly HttpClient _httpClient;
     
     private int _inflightRequests = 0;
 
-    public CrawlerActor(IHttpClientFactory httpClientFactory, CrawlConfiguration crawlConfiguration, IActorRef coordinator)
+    public CrawlerActor(CrawlConfiguration crawlConfiguration, IActorRef coordinator)
     {
-        _httpClientFactory = httpClientFactory;
+        _httpClient = new HttpClient()
+        {
+            DefaultRequestHeaders =
+            {
+                {"User-Agent", $"LinkValidator/{typeof(CrawlerActor).Assembly.GetName().Version}"}
+            }
+        };
         _crawlConfiguration = crawlConfiguration;
         _coordinator = coordinator;
     }
@@ -80,8 +86,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
             try
             {
                 using var cts = new CancellationTokenSource(_crawlConfiguration.RequestTimeout);
-                using var httpClient = _httpClientFactory.CreateClient();
-                var response = await httpClient.GetAsync(msg.Url, cts.Token);
+                var response = await _httpClient.GetAsync(msg.Url.Value, cts.Token);
                 if (response.IsSuccessStatusCode)
                 {
                     var html = await response.Content.ReadAsStringAsync(cts.Token);
@@ -102,8 +107,10 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
         DoWork().PipeTo(Self, Self, result => result);
     }
 
-
-
-
     public IStash Stash { get; set; } = null!;
+
+    protected override void PostStop()
+    {
+        _httpClient.Dispose();
+    }
 }
