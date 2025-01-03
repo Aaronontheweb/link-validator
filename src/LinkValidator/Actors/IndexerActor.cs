@@ -85,7 +85,10 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
 
                 if (IsCrawlComplete)
                 {
-                    _log.Info("Crawl complete!");
+                    var pagesByStatusCode = 
+                        IndexedDocuments.Values.CountBy(c => c.Item2 ?? HttpStatusCode.ServiceUnavailable)
+                            .Select(c => $"{c.Key}:{c.Value}");;
+                    _log.Info("Crawl complete: {0}", string.Join(", ", pagesByStatusCode));
                     
                     var finalOutput =  IndexedDocuments
                         .Where(x => x.Value.status == CrawlStatus.Visited)

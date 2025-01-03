@@ -103,7 +103,8 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
                      * 2. If we need to resolve relative urls, i.e. "../about", we need to know the current path
                      * in order to do that. Preserving the current URL allows us to do that.
                      */
-                    var links = ParseLinks(html, msg.Url);
+                    var processingUri = new Uri(msg.Url.Value, ".");
+                    var links = ParseLinks(html, new AbsoluteUri(processingUri));
 
                     return new PageCrawled(msg.Url, response.StatusCode, links);
                 }
