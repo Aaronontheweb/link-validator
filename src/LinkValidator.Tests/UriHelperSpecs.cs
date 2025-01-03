@@ -81,4 +81,29 @@ public class UriHelperSpecs
         // Assert
         result.Should().Be(expected);
     }
+
+    public static readonly TheoryData<AbsoluteUri, string, RelativeUri> ToRelativeUriData = new()
+    {
+        { new AbsoluteUri(new Uri("http://example.com")), "http://example.com/some/path", new RelativeUri(new Uri("/some/path", UriKind.Relative)) },
+        { new AbsoluteUri(new Uri("http://example.com")), "https://example.com/some/path", new RelativeUri(new Uri("/some/path", UriKind.Relative)) },
+        { new AbsoluteUri(new Uri("http://example.com")), "/some/path", new RelativeUri(new Uri("/some/path", UriKind.Relative)) },
+        { new AbsoluteUri(new Uri("http://example.com")), "some/path", new RelativeUri(new Uri("/some/path", UriKind.Relative)) },
+        { new AbsoluteUri(new Uri("https://example.com")), "some/path", new RelativeUri(new Uri("/some/path", UriKind.Relative)) },
+        
+        // HTTP vs. HTTPS - should normalize to use whatever the baseUri uses
+        { new AbsoluteUri(new Uri("https://example.com")), "http://example.com/some/path", new RelativeUri(new Uri("/some/path", UriKind.Relative)) },
+        { new AbsoluteUri(new Uri("http://example.com")), "https://example.com/some/path", new RelativeUri(new Uri("/some/path", UriKind.Relative)) }
+    };
+    
+    [Theory]
+    [MemberData(nameof(ToRelativeUriData))]
+    public void ToRelativeUri_should_return_expected_results(AbsoluteUri baseUri, string rawUri, RelativeUri expected)
+    {
+        // Act
+        var absoluteUri = UriHelpers.ToAbsoluteUri(baseUri, rawUri);
+        var result = UriHelpers.ToRelativeUri(baseUri, absoluteUri);
+        
+        // Assert
+        result.Should().Be(expected);
+    }
 }

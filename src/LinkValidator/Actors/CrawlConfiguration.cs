@@ -1,17 +1,5 @@
 namespace LinkValidator.Actors;
 
-public record struct AbsoluteUri
-{
-    public AbsoluteUri(Uri value)
-    {
-        Value = value;
-        if (!value.IsAbsoluteUri)
-            throw new ArgumentException("Value must be an absolute URL", nameof(value));
-    }
-
-    public Uri Value { get; }
-}
-
 /// <summary>
 /// Configuration for the crawler
 /// </summary>

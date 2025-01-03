@@ -10,13 +10,15 @@ public static class UriHelpers
         {
             return absoluteUri.GetLeftPart(UriPartial.Path);
         }
+
         return href;
     }
-    
+
     public static bool CanMakeAbsoluteHttpUri(AbsoluteUri baseUri, string rawUri)
     {
         // this will not return true for things like "mailto:" or "tel:" links
-        if (Uri.IsWellFormedUriString(rawUri, UriKind.Absolute) && (rawUri.StartsWith(Uri.UriSchemeHttp) || rawUri.StartsWith(Uri.UriSchemeHttps)))
+        if (Uri.IsWellFormedUriString(rawUri, UriKind.Absolute) &&
+            (rawUri.StartsWith(Uri.UriSchemeHttp) || rawUri.StartsWith(Uri.UriSchemeHttps)))
             return true;
         try
         {
@@ -29,28 +31,50 @@ public static class UriHelpers
             return false;
         }
     }
-    
+
     public static bool AbsoluteUriIsInDomain(AbsoluteUri baseUrl, AbsoluteUri otherUri)
     {
         return AbsoluteUriIsInDomain(baseUrl, otherUri.Value);
     }
-    
+
     public static bool AbsoluteUriIsInDomain(AbsoluteUri baseUrl, Uri otherUri)
     {
         return baseUrl.Value.Host == otherUri.Host;
     }
-    
+
     public static AbsoluteUri ToAbsoluteUri(AbsoluteUri baseUri, string rawUri)
     {
-        return new AbsoluteUri(Uri.IsWellFormedUriString(rawUri, UriKind.Absolute)
-            ? new Uri(rawUri, UriKind.Absolute)
-            : new Uri(baseUri.Value, rawUri));
+        if (!Uri.IsWellFormedUriString(rawUri, UriKind.Absolute))
+        {
+            return new AbsoluteUri(new Uri(baseUri.Value, rawUri));
+        }
+
+        var resultUri = new Uri(rawUri);
+
+        // Ensure the scheme matches the base URI
+        if (resultUri.Scheme != baseUri.Value.Scheme)
+        {
+            var builder = new UriBuilder(resultUri)
+            {
+                Scheme = baseUri.Value.Scheme,
+                Port = -1  // Prevents adding the default port
+            };
+            return new AbsoluteUri(builder.Uri);
+        }
+
+        return new AbsoluteUri(resultUri);
     }
-    
-    public static string DenormalizeUrl(Uri baseUrl, string absoluteUrl)
+
+    public static RelativeUri ToRelativeUri(AbsoluteUri baseUri, AbsoluteUri foundUri)
     {
-        var uri = new Uri(absoluteUrl);
-        var relativePath = Uri.UnescapeDataString(baseUrl.MakeRelativeUri(uri).ToString());
-        return string.IsNullOrEmpty(relativePath) ? "/" : relativePath;
+        var relativeUri = baseUri.Value.MakeRelativeUri(foundUri.Value).ToString();
+
+        // Ensure the relative URI starts with a leading slash
+        if (!relativeUri.StartsWith("/"))
+        {
+            relativeUri = "/" + relativeUri;
+        }
+
+        return new RelativeUri(new Uri(relativeUri, UriKind.Relative));
     }
 }
