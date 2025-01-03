@@ -46,7 +46,7 @@ public class UriHelperSpecs
     // write an inverse of the previous test
     [Theory]
     [InlineData("http://example.com", "http://example.org/some/path")]
-    public void AbsoluteUriIsInDomain_should_NOT_return_true_when_host_is_diffrent(string baseUri, string testUri)
+    public void AbsoluteUriIsInDomain_should_NOT_return_true_when_host_is_different(string baseUri, string testUri)
     {
         // Arrange
         var baseUrl = new AbsoluteUri(new Uri(baseUri));

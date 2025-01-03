@@ -3,6 +3,7 @@ using System.Net;
 using Akka.Actor;
 using System.Net.Http;
 using Akka.Event;
+using LinkValidator.Util;
 using static LinkValidator.Util.ParseHelpers;
 
 namespace LinkValidator.Actors;
@@ -103,8 +104,8 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
                      * 2. If we need to resolve relative urls, i.e. "../about", we need to know the current path
                      * in order to do that. Preserving the current URL allows us to do that.
                      */
-                    var processingUri = new Uri(msg.Url.Value, ".");
-                    var links = ParseLinks(html, new AbsoluteUri(processingUri));
+                    var processingUri = UriHelpers.GetDirectoryPath(msg.Url);
+                    var links = ParseLinks(html, processingUri);
 
                     return new PageCrawled(msg.Url, response.StatusCode, links);
                 }
