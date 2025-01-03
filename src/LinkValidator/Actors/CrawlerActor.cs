@@ -8,8 +8,7 @@ using static LinkValidator.Util.ParseHelpers;
 namespace LinkValidator.Actors;
 
 public record CrawlUrl(string Url);
-public record PageCrawled(string Url, HttpStatusCode StatusCode, IReadOnlyList<string> Links);
-public record CrawlComplete(ImmutableDictionary<string, (HttpStatusCode StatusCode, string Path)> Results);
+public record PageCrawled(string Url, HttpStatusCode StatusCode, IReadOnlyList<AbsoluteUri> Links);
 
 public sealed class CrawlerActor : UntypedActor, IWithStash
 {
@@ -91,12 +90,12 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
                     return new PageCrawled(msg.Url, response.StatusCode, links);
                 }
 
-                return new PageCrawled(msg.Url, response.StatusCode, Array.Empty<string>());
+                return new PageCrawled(msg.Url, response.StatusCode, Array.Empty<AbsoluteUri>());
             }
             catch(Exception ex)
             {
                 _log.Warning(ex, "Failed to crawl {0}", msg.Url);
-                return new PageCrawled(msg.Url, HttpStatusCode.RequestTimeout, Array.Empty<string>());
+                return new PageCrawled(msg.Url, HttpStatusCode.RequestTimeout, Array.Empty<AbsoluteUri>());
             }
         }
         

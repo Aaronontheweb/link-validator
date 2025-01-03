@@ -30,6 +30,11 @@ public static class UriHelpers
         }
     }
     
+    public static bool AbsoluteUriIsInDomain(AbsoluteUri baseUrl, AbsoluteUri otherUri)
+    {
+        return AbsoluteUriIsInDomain(baseUrl, otherUri.Value);
+    }
+    
     public static bool AbsoluteUriIsInDomain(AbsoluteUri baseUrl, Uri otherUri)
     {
         return baseUrl.Value.Host == otherUri.Host;

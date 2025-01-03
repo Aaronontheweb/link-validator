@@ -1,21 +1,22 @@
 using HtmlAgilityPack;
 using LinkValidator.Actors;
+using static LinkValidator.Util.UriHelpers;
 
 namespace LinkValidator.Util;
 
 public static class ParseHelpers
 {
-    public static IReadOnlyList<string> ParseLinks(string html, AbsoluteUri baseUrl)
+    public static IReadOnlyList<AbsoluteUri> ParseLinks(string html, AbsoluteUri baseUrl)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
-        IReadOnlyList<string> links = doc.DocumentNode
+        IReadOnlyList<AbsoluteUri> links = doc.DocumentNode
             .SelectNodes("//a[@href]")?
             .Select(node => node.GetAttributeValue("href", ""))
-            .Where(href => !string.IsNullOrEmpty(href))
-            // .Where(href => href.StartsWith(baseUrl))
-            // .Select(href => UriHelpers.NormalizeUrl(baseUrl, href))
+            .Where(href => !string.IsNullOrEmpty(href) && CanMakeAbsoluteHttpUri(baseUrl, href))
+            .Select(x => ToAbsoluteUri(baseUrl, x))
+            .Where(x => AbsoluteUriIsInDomain(baseUrl, x))
             .ToArray() ?? [];
         return links;
     }
