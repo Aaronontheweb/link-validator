@@ -3,22 +3,13 @@ using System.Net;
 using Akka.Actor;
 using System.Net.Http;
 using Akka.Event;
-using HtmlAgilityPack;
-using static LinkValidator.Util.UriHelpers;
+using static LinkValidator.Util.ParseHelpers;
 
 namespace LinkValidator.Actors;
 
 public record CrawlUrl(string Url);
 public record PageCrawled(string Url, HttpStatusCode StatusCode, IReadOnlyList<string> Links);
 public record CrawlComplete(ImmutableDictionary<string, (HttpStatusCode StatusCode, string Path)> Results);
-
-/// <summary>
-/// Configuration for the crawler
-/// </summary>
-/// <param name="BaseUrl">The base url - we are only interested in urls stemming from it.</param>
-/// <param name="MaxInflightRequests">Max degree of parallelism.</param>
-/// <param name="RequestTimeout">The amount of time we'll allot for any individual HTTP request</param>
-public sealed record CrawlConfiguration(string BaseUrl, int MaxInflightRequests, TimeSpan RequestTimeout);
 
 public sealed class CrawlerActor : UntypedActor, IWithStash
 {
@@ -112,20 +103,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
         DoWork().PipeTo(Self, Self, result => result);
     }
 
-    private static IReadOnlyList<string> ParseLinks(string html, string baseUrl)
-    {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(html);
 
-        IReadOnlyList<string> links = doc.DocumentNode
-            .SelectNodes("//a[@href]")?
-            .Select(node => node.GetAttributeValue("href", ""))
-            .Where(href => !string.IsNullOrEmpty(href))
-            .Select(href => NormalizeUrl(baseUrl, href))
-            .Where(href => href.StartsWith(baseUrl))
-            .ToArray() ?? [];
-        return links;
-    }
 
 
     public IStash Stash { get; set; } = null!;
