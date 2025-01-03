@@ -33,6 +33,8 @@ class Program
             var results = await CrawlWebsite(system, absoluteUri);
             var markdown = GenerateMarkdown(absoluteUri, results);
 
+            _ = system.Terminate();
+            
             if (output != null)
             {
                 await File.WriteAllTextAsync(output, markdown);
