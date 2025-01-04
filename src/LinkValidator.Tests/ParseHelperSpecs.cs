@@ -788,6 +788,35 @@ public class ParseHelperSpecs
         var uris = ParseHelpers.ParseLinks(TweetShareLink, uri);
         
         // Assert
-        uris.Should().HaveCount(31);
+        uris.Should().HaveCount(22);
+    }
+    
+    private const string LinkFragmentsHtml = """
+                                     
+                                             <html>
+                                                 <head>
+                                                     <title>Test Page</title>
+                                                 </head>
+                                                 <body>
+                                                     <a href="/about">About</a>
+                                                     <a href="http://example.com/contact">Contact</a>
+                                                     <a href="http://example.com/contact#phone">Contact Phone Numbers</a>
+                                                 </body>
+                                             </html>
+                                     """;
+
+    [Fact]
+    public void ParseHelper_should_not_count_LinkFragments_separately()
+    {
+      // Arrange
+      var uri = new AbsoluteUri(new Uri("http://example.com/"));
+      
+      // Act
+      var uris = ParseHelpers.ParseLinks(LinkFragmentsHtml, uri);
+      
+      // Assert
+      uris.Should().HaveCount(2);
+      uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/about")));
+      uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/contact")));
     }
 }
