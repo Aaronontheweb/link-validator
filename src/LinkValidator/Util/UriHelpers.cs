@@ -38,34 +38,44 @@ public static class UriHelpers
 
         if (!Uri.IsWellFormedUriString(rawUri, UriKind.Absolute))
         {
-            var basePath = baseUri.Value.GetLeftPart(UriPartial.Path).TrimEnd('/');
-
-            // Split base path and raw URI into segments
-            var baseSegments = basePath.Split('/');
-            var relativeSegments = rawUri.Split('/');
-
-            // Result list to accumulate segments
-            var finalSegments = new List<string>(baseSegments);
-
-            foreach (var segment in relativeSegments)
+            if (rawUri.StartsWith('/')) // have a root-relative Uri
             {
-                if (segment == "..")
+                // get the root of the baseUri
+                var rootUri = new Uri(baseUri.Value.GetLeftPart(UriPartial.Authority));
+                resolvedUri = new Uri(rootUri, rawUri);
+            }
+            else // have some other type of relative uri
+            {
+                var basePath = baseUri.Value.GetLeftPart(UriPartial.Path).TrimEnd('/');
+
+                // Split base path and raw URI into segments
+                var baseSegments = basePath.Split('/');
+                var relativeSegments = rawUri.Split('/');
+
+                // Result list to accumulate segments
+                var finalSegments = new List<string>(baseSegments);
+
+                foreach (var segment in relativeSegments)
                 {
-                    // Pop last segment if it's not the root
-                    if (finalSegments.Count > 3) // Preserve 'http://example.com'
+                    if (segment == "..")
                     {
-                        finalSegments.RemoveAt(finalSegments.Count - 1);
+                        // Pop last segment if it's not the root
+                        if (finalSegments.Count > 3) // Preserve 'http://example.com'
+                        {
+                            finalSegments.RemoveAt(finalSegments.Count - 1);
+                        }
+                    }
+                    else if (segment != "." && !string.IsNullOrEmpty(segment))
+                    {
+                        finalSegments.Add(segment);
                     }
                 }
-                else if (segment != "." && !string.IsNullOrEmpty(segment))
-                {
-                    finalSegments.Add(segment);
-                }
-            }
 
-            // Rebuild the URI path
-            var combinedPath = string.Join("/", finalSegments);
-            resolvedUri = new Uri(combinedPath, UriKind.Absolute);
+                // Rebuild the URI path
+                var combinedPath = string.Join("/", finalSegments);
+                resolvedUri = new Uri(combinedPath, UriKind.Absolute);
+            }
+            
         }
         else
         {
@@ -92,7 +102,7 @@ public static class UriHelpers
         var relativeUri = baseUri.Value.MakeRelativeUri(foundUri.Value).ToString();
 
         // Ensure the relative URI starts with a leading slash
-        if (!relativeUri.StartsWith("/"))
+        if (!relativeUri.StartsWith('/'))
         {
             relativeUri = "/" + relativeUri;
         }
