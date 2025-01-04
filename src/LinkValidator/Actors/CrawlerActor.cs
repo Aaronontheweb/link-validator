@@ -3,6 +3,7 @@ using System.Net;
 using Akka.Actor;
 using System.Net.Http;
 using Akka.Event;
+using LinkValidator.Util;
 using static LinkValidator.Util.ParseHelpers;
 
 namespace LinkValidator.Actors;
@@ -81,6 +82,9 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
          */
         _inflightRequests++;
 
+        DoWork().PipeTo(Self, Self, result => result);
+        return;
+
         async Task<PageCrawled> DoWork()
         {
             try
@@ -90,7 +94,18 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
                 if (response.IsSuccessStatusCode)
                 {
                     var html = await response.Content.ReadAsStringAsync(cts.Token);
-                    var links = ParseLinks(html, _crawlConfiguration.BaseUrl);
+                    /*
+                     * A subtle but important note: we pass in THE CURRENT URL WE ARE QUERYING here
+                     * rather than the configured base url. Why might that be?
+                     *
+                     * This is because:
+                     *
+                     * 1. We know, with certainty, that this URL is valid AND belongs to our target domain.
+                     * 2. If we need to resolve relative urls, i.e. "../about", we need to know the current path
+                     * in order to do that. Preserving the current URL allows us to do that.
+                     */
+                    var processingUri = UriHelpers.GetDirectoryPath(msg.Url);
+                    var links = ParseLinks(html, processingUri);
 
                     return new PageCrawled(msg.Url, response.StatusCode, links);
                 }
@@ -103,8 +118,6 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
                 return new PageCrawled(msg.Url, HttpStatusCode.RequestTimeout, Array.Empty<AbsoluteUri>());
             }
         }
-        
-        DoWork().PipeTo(Self, Self, result => result);
     }
 
     public IStash Stash { get; set; } = null!;
