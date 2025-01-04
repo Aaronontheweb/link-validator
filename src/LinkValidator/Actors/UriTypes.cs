@@ -1,3 +1,9 @@
+// -----------------------------------------------------------------------
+// <copyright file="UriTypes.cs">
+//      Copyright (C) 2025 - 2025 Aaron Stannard <https://aaronstannard.com/>
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Text;
 
 namespace LinkValidator.Actors;
@@ -12,7 +18,7 @@ public record struct AbsoluteUri
     }
 
     public Uri Value { get; }
-    
+
     public override string ToString() => Value.ToString();
 }
 
@@ -29,6 +35,6 @@ public record struct RelativeUri
     }
 
     public Uri Value { get; }
-    
+
     public override string ToString() => Value.ToString();
 }

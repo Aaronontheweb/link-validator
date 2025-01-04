@@ -8,10 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Akka" />
-      <PackageReference Include="Grynwald.MarkdownGenerator" />
-      <PackageReference Include="HtmlAgilityPack" />
-      <PackageReference Include="System.CommandLine" />
+        <PackageReference Include="Akka"/>
+        <PackageReference Include="Grynwald.MarkdownGenerator"/>
+        <PackageReference Include="HtmlAgilityPack"/>
+        <PackageReference Include="System.CommandLine"/>
     </ItemGroup>
 
 </Project>

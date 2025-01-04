@@ -1,4 +1,10 @@
-﻿using System.Collections.Immutable;
+﻿// -----------------------------------------------------------------------
+// <copyright file="Program.cs">
+//      Copyright (C) 2025 - 2025 Aaron Stannard <https://aaronstannard.com/>
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System.Collections.Immutable;
 using System.CommandLine;
 using System.Net;
 using Akka.Actor;
@@ -25,7 +31,7 @@ class Program
             diffOption,
             strictOption
         };
-        
+
         rootCommand.SetHandler(async (url, output, diff, strict) =>
         {
             if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
@@ -34,14 +40,14 @@ class Program
                 Environment.Exit(1);
                 return;
             }
-           
+
             var system = ActorSystem.Create("CrawlerSystem", "akka.loglevel = INFO");
             var absoluteUri = new AbsoluteUri(new Uri(url));
             var results = await CrawlWebsite(system, absoluteUri);
             var markdown = GenerateMarkdown(absoluteUri, results);
 
             _ = system.Terminate();
-            
+
             if (output != null)
             {
                 await File.WriteAllTextAsync(output, markdown);
@@ -70,11 +76,12 @@ class Program
         return await rootCommand.InvokeAsync(args);
     }
 
-    private static async Task<ImmutableSortedDictionary<string, HttpStatusCode>> CrawlWebsite(ActorSystem system, AbsoluteUri url)
+    private static async Task<ImmutableSortedDictionary<string, HttpStatusCode>> CrawlWebsite(ActorSystem system,
+        AbsoluteUri url)
     {
         var crawlSettings = new CrawlConfiguration(url, 10, TimeSpan.FromSeconds(5));
         var tcs = new TaskCompletionSource<ImmutableSortedDictionary<string, HttpStatusCode>>();
-        
+
         var indexer = system.ActorOf(Props.Create(() => new IndexerActor(crawlSettings, tcs)), "indexer");
         indexer.Tell(IndexerActor.BeginIndexing.Instance);
         return await tcs.Task;

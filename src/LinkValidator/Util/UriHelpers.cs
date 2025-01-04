@@ -1,4 +1,10 @@
-﻿using LinkValidator.Actors;
+﻿// -----------------------------------------------------------------------
+// <copyright file="UriHelpers.cs">
+//      Copyright (C) 2025 - 2025 Aaron Stannard <https://aaronstannard.com/>
+// </copyright>
+// -----------------------------------------------------------------------
+
+using LinkValidator.Actors;
 
 namespace LinkValidator.Util;
 

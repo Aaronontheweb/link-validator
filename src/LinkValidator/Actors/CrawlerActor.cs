@@ -1,4 +1,10 @@
-﻿using System.Collections.Immutable;
+﻿// -----------------------------------------------------------------------
+// <copyright file="CrawlerActor.cs">
+//      Copyright (C) 2025 - 2025 Aaron Stannard <https://aaronstannard.com/>
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System.Collections.Immutable;
 using System.Net;
 using Akka.Actor;
 using System.Net.Http;
@@ -9,6 +15,7 @@ using static LinkValidator.Util.ParseHelpers;
 namespace LinkValidator.Actors;
 
 public record CrawlUrl(AbsoluteUri Url);
+
 public record PageCrawled(AbsoluteUri Url, HttpStatusCode StatusCode, IReadOnlyList<AbsoluteUri> Links);
 
 public sealed class CrawlerActor : UntypedActor, IWithStash
@@ -17,7 +24,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
     private readonly CrawlConfiguration _crawlConfiguration;
     private readonly IActorRef _coordinator;
     private readonly HttpClient _httpClient;
-    
+
     private int _inflightRequests = 0;
 
     public CrawlerActor(CrawlConfiguration crawlConfiguration, IActorRef coordinator)
@@ -26,7 +33,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
         {
             DefaultRequestHeaders =
             {
-                {"User-Agent", $"LinkValidator/{typeof(CrawlerActor).Assembly.GetName().Version}"}
+                { "User-Agent", $"LinkValidator/{typeof(CrawlerActor).Assembly.GetName().Version}" }
             }
         };
         _crawlConfiguration = crawlConfiguration;
@@ -39,9 +46,9 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
         {
             case CrawlUrl crawlUrl:
                 HandleCrawlUrl(crawlUrl);
-                
+
                 // switch behaviors to "waiting" if we've hit our max inflight requests
-                if(_inflightRequests == _crawlConfiguration.MaxInflightRequests)
+                if (_inflightRequests == _crawlConfiguration.MaxInflightRequests)
                     Become(TooBusy);
                 break;
             case PageCrawled pageCrawled:
@@ -60,7 +67,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
                 break;
             case PageCrawled pageCrawled:
                 HandlePageCrawled(pageCrawled);
-                
+
                 // switch behaviors back and unstash one message
                 Stash.Unstash();
                 Become(OnReceive);
@@ -112,7 +119,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
 
                 return new PageCrawled(msg.Url, response.StatusCode, Array.Empty<AbsoluteUri>());
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _log.Warning(ex, "Failed to crawl {0}", msg.Url);
                 return new PageCrawled(msg.Url, HttpStatusCode.RequestTimeout, Array.Empty<AbsoluteUri>());

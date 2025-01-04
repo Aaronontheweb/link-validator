@@ -1,3 +1,9 @@
+// -----------------------------------------------------------------------
+// <copyright file="ParseHelpers.cs">
+//      Copyright (C) 2025 - 2025 Aaron Stannard <https://aaronstannard.com/>
+// </copyright>
+// -----------------------------------------------------------------------
+
 using HtmlAgilityPack;
 using LinkValidator.Actors;
 using static LinkValidator.Util.UriHelpers;
