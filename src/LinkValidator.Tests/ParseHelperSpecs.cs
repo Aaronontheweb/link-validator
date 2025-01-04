@@ -98,4 +98,35 @@ public class ParseHelperSpecs
         uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/about")));
         uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/contact")));
     }
+
+    public const string TweetShareLink = """
+                                         <html>
+                                         <head>
+                                         <title>Test Page</title>
+                                         </head>
+                                         <body>
+                                             <a href="http://example.com/about">About</a>
+                                             <a href="http://example.com/contact">Contact</a>
+                                             <a href="http://example.com/faq">FAQ</a>
+                                             <a href="https://twitter.com/intent/tweet?url=http://example.com/index.html&text=Index&via=petabridge"
+                                          target="_blank">
+                                         share it with your followers</a>
+                                         </body>
+                                         """;
+
+    [Fact]
+    public void ParseHelper_should_not_include_absoluteUris_that_appear_in_querystring()
+    {
+        // Arrange
+        var uri = new AbsoluteUri(new Uri("http://example.com/foo/"));
+        
+        // Act
+        var uris = ParseHelpers.ParseLinks(TweetShareLink, uri);
+        
+        // Assert
+        uris.Should().HaveCount(3);
+        uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/about")));
+        uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/contact")));
+        uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/faq")));
+    }
 }
