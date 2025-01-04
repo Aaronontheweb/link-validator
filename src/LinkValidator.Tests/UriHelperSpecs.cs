@@ -1,3 +1,9 @@
+// -----------------------------------------------------------------------
+// <copyright file="UriHelperSpecs.cs">
+//      Copyright (C) 2025 - 2025 Aaron Stannard <https://aaronstannard.com/>
+// </copyright>
+// -----------------------------------------------------------------------
+
 using FluentAssertions;
 using LinkValidator.Actors;
 using LinkValidator.Util;
@@ -105,7 +111,7 @@ public class UriHelperSpecs
             new AbsoluteUri(new Uri("http://example.com/some/llm/rag.html")), "../../path",
             new AbsoluteUri(new Uri("http://example.com/some/path"))
         },
-        
+
         // root-relative uris
         // relative uris with a folder
         {

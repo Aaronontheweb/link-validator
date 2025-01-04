@@ -1,3 +1,9 @@
+// -----------------------------------------------------------------------
+// <copyright file="CrawlConfiguration.cs">
+//      Copyright (C) 2025 - 2025 Aaron Stannard <https://aaronstannard.com/>
+// </copyright>
+// -----------------------------------------------------------------------
+
 namespace LinkValidator.Actors;
 
 /// <summary>

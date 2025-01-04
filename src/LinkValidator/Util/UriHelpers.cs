@@ -1,4 +1,10 @@
-﻿using LinkValidator.Actors;
+﻿// -----------------------------------------------------------------------
+// <copyright file="UriHelpers.cs">
+//      Copyright (C) 2025 - 2025 Aaron Stannard <https://aaronstannard.com/>
+// </copyright>
+// -----------------------------------------------------------------------
+
+using LinkValidator.Actors;
 
 namespace LinkValidator.Util;
 
@@ -7,7 +13,8 @@ public static class UriHelpers
     public static bool CanMakeAbsoluteHttpUri(AbsoluteUri baseUri, string rawUri)
     {
         // this will not return true for things like "mailto:" or "tel:" links
-        if (IsAbsoluteUri(rawUri))
+        if (Uri.IsWellFormedUriString(rawUri, UriKind.Absolute) &&
+            (rawUri.StartsWith(Uri.UriSchemeHttp) || rawUri.StartsWith(Uri.UriSchemeHttps)))
             return true;
         try
         {
@@ -31,16 +38,11 @@ public static class UriHelpers
         return baseUrl.Value.Host == otherUri.Host;
     }
 
-    public static bool IsAbsoluteUri(string rawUri)
-    {
-        return rawUri.StartsWith(Uri.UriSchemeHttp) || rawUri.StartsWith(Uri.UriSchemeHttps);
-    }
-
     public static AbsoluteUri ToAbsoluteUri(AbsoluteUri baseUri, string rawUri)
     {
         Uri resolvedUri;
 
-        if (!IsAbsoluteUri(rawUri))
+        if (!Uri.IsWellFormedUriString(rawUri, UriKind.Absolute))
         {
             if (rawUri.StartsWith('/')) // have a root-relative Uri
             {
@@ -91,24 +93,12 @@ public static class UriHelpers
             var builder = new UriBuilder(resolvedUri)
             {
                 Scheme = baseUri.Value.Scheme,
-                Port = -1, // Prevents adding the default port
+                Port = -1 // Prevents adding the default port
             };
-            resolvedUri = builder.Uri;
+            return new AbsoluteUri(builder.Uri);
         }
 
-        return new AbsoluteUri(RemoveQueryAndFragment(resolvedUri));
-    }
-
-
-    public static Uri RemoveQueryAndFragment(Uri uri)
-    {
-        if (uri == null)
-        {
-            throw new ArgumentNullException(nameof(uri));
-        }
-
-        // Rebuild the URI without the Query and Fragment parts
-        return new Uri(uri.GetLeftPart(UriPartial.Path));
+        return new AbsoluteUri(resolvedUri);
     }
 
 

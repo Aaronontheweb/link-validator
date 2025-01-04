@@ -1,10 +1,17 @@
-﻿using System.Text.RegularExpressions;
+﻿// -----------------------------------------------------------------------
+// <copyright file="DiffHelper.cs">
+//      Copyright (C) 2025 - 2025 Aaron Stannard <https://aaronstannard.com/>
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System.Text.RegularExpressions;
 
 namespace LinkValidator.Util;
 
 public static partial class DiffHelper
 {
-    public static (IReadOnlyList<string> Differences, bool HasErrors) CompareSitemapsWithErrors(string previous, string current)
+    public static (IReadOnlyList<string> Differences, bool HasErrors) CompareSitemapsWithErrors(string previous,
+        string current)
     {
         var differences = new List<string>();
         var hasErrors = false;
@@ -30,7 +37,7 @@ public static partial class DiffHelper
         foreach (var line in currentLines.Except(previousLines))
         {
             differences.Add($"New: {line}");
-        
+
             // Check if new page has error status code
             var statusCodeMatch = MyRegex().Match(line);
             if (statusCodeMatch.Success && int.Parse(statusCodeMatch.Groups[1].Value) >= 400)
