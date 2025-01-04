@@ -13,8 +13,7 @@ public static class UriHelpers
     public static bool CanMakeAbsoluteHttpUri(AbsoluteUri baseUri, string rawUri)
     {
         // this will not return true for things like "mailto:" or "tel:" links
-        if (Uri.IsWellFormedUriString(rawUri, UriKind.Absolute) &&
-            (rawUri.StartsWith(Uri.UriSchemeHttp) || rawUri.StartsWith(Uri.UriSchemeHttps)))
+        if (IsAbsoluteUri(rawUri))
             return true;
         try
         {
@@ -38,11 +37,16 @@ public static class UriHelpers
         return baseUrl.Value.Host == otherUri.Host;
     }
 
+    public static bool IsAbsoluteUri(string rawUri)
+    {
+        return rawUri.StartsWith(Uri.UriSchemeHttp) || rawUri.StartsWith(Uri.UriSchemeHttps);
+    }
+
     public static AbsoluteUri ToAbsoluteUri(AbsoluteUri baseUri, string rawUri)
     {
         Uri resolvedUri;
 
-        if (!Uri.IsWellFormedUriString(rawUri, UriKind.Absolute))
+        if (!IsAbsoluteUri(rawUri))
         {
             if (rawUri.StartsWith('/')) // have a root-relative Uri
             {
@@ -93,12 +97,24 @@ public static class UriHelpers
             var builder = new UriBuilder(resolvedUri)
             {
                 Scheme = baseUri.Value.Scheme,
-                Port = -1 // Prevents adding the default port
+                Port = -1, // Prevents adding the default port
             };
-            return new AbsoluteUri(builder.Uri);
+            resolvedUri = builder.Uri;
         }
 
-        return new AbsoluteUri(resolvedUri);
+        return new AbsoluteUri(RemoveQueryAndFragment(resolvedUri));
+    }
+
+
+    public static Uri RemoveQueryAndFragment(Uri uri)
+    {
+        if (uri == null)
+        {
+            throw new ArgumentNullException(nameof(uri));
+        }
+
+        // Rebuild the URI without the Query and Fragment parts
+        return new Uri(uri.GetLeftPart(UriPartial.Path));
     }
 
 
