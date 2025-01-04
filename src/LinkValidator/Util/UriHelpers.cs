@@ -7,8 +7,7 @@ public static class UriHelpers
     public static bool CanMakeAbsoluteHttpUri(AbsoluteUri baseUri, string rawUri)
     {
         // this will not return true for things like "mailto:" or "tel:" links
-        if (Uri.IsWellFormedUriString(rawUri, UriKind.Absolute) &&
-            (rawUri.StartsWith(Uri.UriSchemeHttp) || rawUri.StartsWith(Uri.UriSchemeHttps)))
+        if (IsAbsoluteUri(rawUri))
             return true;
         try
         {
@@ -32,11 +31,16 @@ public static class UriHelpers
         return baseUrl.Value.Host == otherUri.Host;
     }
 
+    public static bool IsAbsoluteUri(string rawUri)
+    {
+        return rawUri.StartsWith(Uri.UriSchemeHttp) || rawUri.StartsWith(Uri.UriSchemeHttps);
+    }
+
     public static AbsoluteUri ToAbsoluteUri(AbsoluteUri baseUri, string rawUri)
     {
         Uri resolvedUri;
 
-        if (!Uri.IsWellFormedUriString(rawUri, UriKind.Absolute))
+        if (!IsAbsoluteUri(rawUri))
         {
             if (rawUri.StartsWith('/')) // have a root-relative Uri
             {
