@@ -79,7 +79,6 @@ public static class UriHelpers
                 var combinedPath = string.Join("/", finalSegments);
                 resolvedUri = new Uri(combinedPath, UriKind.Absolute);
             }
-            
         }
         else
         {
@@ -92,12 +91,24 @@ public static class UriHelpers
             var builder = new UriBuilder(resolvedUri)
             {
                 Scheme = baseUri.Value.Scheme,
-                Port = -1 // Prevents adding the default port
+                Port = -1, // Prevents adding the default port
             };
-            return new AbsoluteUri(builder.Uri);
+            resolvedUri = builder.Uri;
         }
 
-        return new AbsoluteUri(resolvedUri);
+        return new AbsoluteUri(RemoveQueryAndFragment(resolvedUri));
+    }
+
+
+    public static Uri RemoveQueryAndFragment(Uri uri)
+    {
+        if (uri == null)
+        {
+            throw new ArgumentNullException(nameof(uri));
+        }
+
+        // Rebuild the URI without the Query and Fragment parts
+        return new Uri(uri.GetLeftPart(UriPartial.Path));
     }
 
 
@@ -113,16 +124,16 @@ public static class UriHelpers
 
         return new RelativeUri(new Uri(relativeUri, UriKind.Relative));
     }
-    
+
     public static bool IsFileUrl(Uri uri)
     {
         // Get the last segment of the path
         var lastSegment = uri.Segments.LastOrDefault();
-    
+
         // Check if the last segment contains a dot, indicating a file extension
         return !string.IsNullOrEmpty(lastSegment) && lastSegment.Contains('.');
     }
-    
+
     public static AbsoluteUri GetDirectoryPath(AbsoluteUri uri)
     {
         // Get the full path part of the URI
@@ -136,5 +147,4 @@ public static class UriHelpers
 
         return new AbsoluteUri(new Uri(path, UriKind.Absolute));
     }
-
 }

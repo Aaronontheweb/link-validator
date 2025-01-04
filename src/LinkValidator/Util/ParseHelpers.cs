@@ -17,6 +17,7 @@ public static class ParseHelpers
             .Where(href => !string.IsNullOrEmpty(href) && CanMakeAbsoluteHttpUri(baseUrl, href))
             .Select(x => ToAbsoluteUri(baseUrl, x))
             .Where(x => AbsoluteUriIsInDomain(baseUrl, x))
+            .Distinct() // filter duplicates - we're counting urls, not individual links
             .ToArray() ?? [];
         return links;
     }

@@ -788,7 +788,7 @@ public class ParseHelperSpecs
         var uris = ParseHelpers.ParseLinks(TweetShareLink, uri);
         
         // Assert
-        uris.Should().HaveCount(31);
+        uris.Should().HaveCount(22);
     }
     
     private const string LinkFragmentsHtml = """
