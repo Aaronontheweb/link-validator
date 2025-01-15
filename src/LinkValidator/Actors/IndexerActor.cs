@@ -13,29 +13,6 @@ using LinkValidator.Util;
 
 namespace LinkValidator.Actors;
 
-public enum CrawlStatus
-{
-    /// <summary>
-    /// No one has been requested to crawl this document yet
-    /// </summary>
-    NotVisited = 0,
-
-    /// <summary>
-    /// Someone is currently crawling this document
-    /// </summary>
-    Visiting = 1,
-
-    /// <summary>
-    /// We failed to crawl this document for some reason
-    /// </summary>
-    Failed = 2,
-
-    /// <summary>
-    /// We've crawled this document
-    /// </summary>
-    Visited = 3
-}
-
 public sealed class IndexerActor : UntypedActor, IWithTimers
 {
     public sealed class BeginIndexing
@@ -68,16 +45,16 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
     private readonly ILoggingAdapter _log = Context.GetLogger();
     private readonly CrawlConfiguration _crawlConfiguration;
     private IActorRef _crawlers = ActorRefs.Nobody;
-    private readonly TaskCompletionSource<ImmutableSortedDictionary<string, HttpStatusCode>> _completionSource;
+    private readonly TaskCompletionSource<ImmutableSortedDictionary<string, CrawlRecord>> _completionSource;
 
     public IndexerActor(CrawlConfiguration crawlConfiguration,
-        TaskCompletionSource<ImmutableSortedDictionary<string, HttpStatusCode>> completionSource)
+        TaskCompletionSource<ImmutableSortedDictionary<string, CrawlRecord>> completionSource)
     {
         _crawlConfiguration = crawlConfiguration;
         _completionSource = completionSource;
     }
 
-    public Dictionary<AbsoluteUri, (CrawlStatus status, HttpStatusCode?)> IndexedDocuments { get; } = new();
+    public Dictionary<AbsoluteUri, (CrawlStatus status, CrawlRecord?)> IndexedDocuments { get; } = new();
 
     protected override void OnReceive(object message)
     {
@@ -90,7 +67,17 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
                 break;
             case PageCrawled pageCrawled:
             {
-                IndexedDocuments[pageCrawled.Url] = (CrawlStatus.Visited, pageCrawled.StatusCode);
+                if(IndexedDocuments.TryGetValue(pageCrawled.Url, out var tuple))
+                {
+                    var (previousStatus, record) = tuple;
+                    if (record == null)
+                    {
+                        record = new CrawlRecord(pageCrawled.Url, pageCrawled.StatusCode, ImmutableList<AbsoluteUri>.Empty);
+                    }
+                    
+                    IndexedDocuments[pageCrawled.Url] = (CrawlStatus.Visited, pageCrawled.StatusCode);
+                }
+               
 
                 // kick off scans of all the links on this page
                 foreach (var p in pageCrawled.Links)
