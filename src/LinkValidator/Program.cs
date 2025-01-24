@@ -4,11 +4,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System.Collections.Immutable;
 using System.CommandLine;
 using System.Net;
 using Akka.Actor;
 using LinkValidator.Actors;
+using LinkValidator.Util;
 using static LinkValidator.Util.DiffHelper;
 using static LinkValidator.Util.MarkdownHelper;
 
@@ -43,7 +43,7 @@ class Program
 
             var system = ActorSystem.Create("CrawlerSystem", "akka.loglevel = INFO");
             var absoluteUri = new AbsoluteUri(new Uri(url));
-            var results = await CrawlWebsite(system, absoluteUri);
+            var results = await CrawlerHelper.CrawlWebsite(system, absoluteUri);
             var markdown = GenerateMarkdown(absoluteUri, results);
 
             _ = system.Terminate();
@@ -74,16 +74,5 @@ class Program
         }, urlOption, outputOption, diffOption, strictOption);
 
         return await rootCommand.InvokeAsync(args);
-    }
-
-    private static async Task<ImmutableSortedDictionary<string, HttpStatusCode>> CrawlWebsite(ActorSystem system,
-        AbsoluteUri url)
-    {
-        var crawlSettings = new CrawlConfiguration(url, 10, TimeSpan.FromSeconds(5));
-        var tcs = new TaskCompletionSource<ImmutableSortedDictionary<string, HttpStatusCode>>();
-
-        var indexer = system.ActorOf(Props.Create(() => new IndexerActor(crawlSettings, tcs)), "indexer");
-        indexer.Tell(IndexerActor.BeginIndexing.Instance);
-        return await tcs.Task;
     }
 }

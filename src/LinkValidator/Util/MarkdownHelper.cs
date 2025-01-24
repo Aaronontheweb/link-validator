@@ -14,14 +14,16 @@ namespace LinkValidator.Util;
 public static class MarkdownHelper
 {
     public static string GenerateMarkdown(AbsoluteUri baseUri,
-        ImmutableSortedDictionary<string, HttpStatusCode> results)
+        ImmutableSortedDictionary<string, CrawlRecord> results)
     {
         var document = new MdDocument();
 
         // Add a header
         document.Root.Add(new MdHeading(1, $"Sitemap for [{baseUri.Value.ToString()}]"));
         var headerRow = new MdTableRow(new MdTextSpan("URL"), new MdTextSpan("StatusCode"));
-        var rows = results.Select(kvp => new MdTableRow(new MdCodeSpan(kvp.Key), new MdTextSpan(kvp.Value.ToString())));
+        var rows = results
+            .Select(kvp => new MdTableRow(new MdCodeSpan(kvp.Key), 
+                new MdTextSpan(kvp.Value.StatusCode.ToString())));
 
         // Add a table
         document.Root.Add(new MdTable(headerRow, rows));
