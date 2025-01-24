@@ -76,11 +76,11 @@ class Program
         return await rootCommand.InvokeAsync(args);
     }
 
-    private static async Task<ImmutableSortedDictionary<string, HttpStatusCode>> CrawlWebsite(ActorSystem system,
+    private static async Task<ImmutableSortedDictionary<string, CrawlRecord>> CrawlWebsite(ActorSystem system,
         AbsoluteUri url)
     {
         var crawlSettings = new CrawlConfiguration(url, 10, TimeSpan.FromSeconds(5));
-        var tcs = new TaskCompletionSource<ImmutableSortedDictionary<string, HttpStatusCode>>();
+        var tcs = new TaskCompletionSource<ImmutableSortedDictionary<string, CrawlRecord>>();
 
         var indexer = system.ActorOf(Props.Create(() => new IndexerActor(crawlSettings, tcs)), "indexer");
         indexer.Tell(IndexerActor.BeginIndexing.Instance);

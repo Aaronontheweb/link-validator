@@ -67,30 +67,41 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
                 break;
             case PageCrawled pageCrawled:
             {
-                if(IndexedDocuments.TryGetValue(pageCrawled.Url, out var tuple))
+                if (IndexedDocuments.TryGetValue(pageCrawled.Url, out var tuple))
                 {
                     var (previousStatus, record) = tuple;
                     if (record == null)
                     {
-                        record = new CrawlRecord(pageCrawled.Url, pageCrawled.StatusCode, ImmutableList<AbsoluteUri>.Empty);
+                        record = CrawlRecord.Empty(pageCrawled.Url) with { StatusCode = pageCrawled.StatusCode };
                     }
-                    
-                    IndexedDocuments[pageCrawled.Url] = (CrawlStatus.Visited, pageCrawled.StatusCode);
+
+                    IndexedDocuments[pageCrawled.Url] = (CrawlStatus.Visited, record);
                 }
-               
 
                 // kick off scans of all the links on this page
                 foreach (var p in pageCrawled.Links)
                     if (!IndexedDocuments.TryGetValue(p, out var status) || status.status == CrawlStatus.NotVisited)
                     {
-                        IndexedDocuments[p] = (CrawlStatus.Visiting, null);
+                        IndexedDocuments[p] = (CrawlStatus.Visiting,
+                            CrawlRecord.Empty(p) with
+                            {
+                                LinksToPage = ImmutableList<AbsoluteUri>.Empty.Add(pageCrawled.Url)
+                            });
                         _crawlers.Tell(new CrawlUrl(p));
+                    }
+                    else
+                    {
+                        var crawlRecord = status.Item2 ?? CrawlRecord.Empty(p);
+
+                        // we've already visited this page, so let's update the record to include who links here
+                        IndexedDocuments[p] = (status.status,
+                            crawlRecord with { LinksToPage = crawlRecord.LinksToPage.Add(pageCrawled.Url) });
                     }
 
                 if (IsCrawlComplete)
                 {
                     var pagesByStatusCode =
-                        IndexedDocuments.Values.CountBy(c => c.Item2 ?? HttpStatusCode.ServiceUnavailable)
+                        IndexedDocuments.Values.CountBy(c => c.Item2?.StatusCode ?? HttpStatusCode.ServiceUnavailable)
                             .Select(c => $"{c.Key}:{c.Value}");
                     ;
                     _log.Info("Crawl complete: {0}", string.Join(", ", pagesByStatusCode));
@@ -99,7 +110,7 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
                         .Where(x => x.Value.status == CrawlStatus.Visited)
                         .ToImmutableSortedDictionary(
                             x => UriHelpers.ToRelativeUri(_crawlConfiguration.BaseUrl, x.Key).ToString(),
-                            x => x.Value.Item2 ?? HttpStatusCode.NotFound);
+                            x => x.Value.Item2 ?? CrawlRecord.Empty(x.Key));
 
                     _completionSource.SetResult(finalOutput);
 
