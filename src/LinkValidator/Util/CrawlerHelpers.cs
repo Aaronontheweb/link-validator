@@ -1,5 +1,5 @@
 // -----------------------------------------------------------------------
-// <copyright file="CrawlerHelpers.cs">
+// <copyright file="CrawlerHelper.cs">
 //      Copyright (C) 2025 - 2025 Aaron Stannard <https://aaronstannard.com/>
 // </copyright>
 // -----------------------------------------------------------------------
@@ -10,7 +10,7 @@ using LinkValidator.Actors;
 
 namespace LinkValidator.Util;
 
-public static class CrawlerHelpers
+public static class CrawlerHelper
 {
     public static async Task<ImmutableSortedDictionary<string, CrawlRecord>> CrawlWebsite(ActorSystem system,
         AbsoluteUri url)
