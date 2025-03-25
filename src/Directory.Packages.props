@@ -3,14 +3,14 @@
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     </PropertyGroup>
     <ItemGroup Label="App">
-        <PackageVersion Include="Akka" Version="1.5.39"/>
+        <PackageVersion Include="Akka" Version="1.5.40"/>
         <PackageVersion Include="FluentAssertions" Version="7.0.0"/>
         <PackageVersion Include="Grynwald.MarkdownGenerator" Version="3.0.106"/>
         <PackageVersion Include="HtmlAgilityPack" Version="1.11.72"/>
         <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1"/>
     </ItemGroup>
     <ItemGroup Label="Test">
-        <PackageVersion Include="Akka.TestKit" Version="1.5.39"/>
+        <PackageVersion Include="Akka.TestKit" Version="1.5.40"/>
         <PackageVersion Include="coverlet.collector" Version="6.0.4"/>
         <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0"/>
         <PackageVersion Include="xunit" Version="2.9.3"/>
