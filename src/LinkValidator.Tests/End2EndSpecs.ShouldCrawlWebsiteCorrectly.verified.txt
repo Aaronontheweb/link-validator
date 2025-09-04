@@ -1,1 +1,10 @@
-﻿
+﻿# Sitemap for \[http:\/\/localhost:8080\/\]
+
+| URL                   | StatusCode |
+| --------------------- | ---------- |
+| `/`                   | OK         |
+| `/about/contact.html` | OK         |
+| `/about/index.html`   | OK         |
+| `/index.html`         | OK         |
+| `/page1.html`         | OK         |
+| `/page2.html`         | NotFound   |

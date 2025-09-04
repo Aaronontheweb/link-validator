@@ -21,6 +21,9 @@ public class End2EndSpecs : TestKit, IClassFixture<TestWebServerFixture>
     {
         _webServerFixture = webServerFixture;
         _output = output;
+        
+        _webServerFixture.Logger = _output.WriteLine;
+        _webServerFixture.StartServer(RootPagePath);
     }
     
     public static readonly string RootPagePath = Path.Join(Directory.GetCurrentDirectory(), "pages");
@@ -37,8 +40,6 @@ public class End2EndSpecs : TestKit, IClassFixture<TestWebServerFixture>
         Assert.True(File.Exists(Path.Join(RootPagePath, "index.html")));
         
         // arrange - start test web server  
-        _webServerFixture.Logger = _output.WriteLine;
-        _webServerFixture.StartServer(RootPagePath);
         var baseUrl = new AbsoluteUri(new Uri(_webServerFixture.BaseUrl!));
         
         // act

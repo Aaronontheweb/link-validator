@@ -70,12 +70,9 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
                 if (IndexedDocuments.TryGetValue(pageCrawled.Url, out var tuple))
                 {
                     var (previousStatus, record) = tuple;
-                    if (record == null)
-                    {
-                        record = CrawlRecord.Empty(pageCrawled.Url) with { StatusCode = pageCrawled.StatusCode };
-                    }
+                    var cleanRecord = record ??= CrawlRecord.Empty(pageCrawled.Url);
 
-                    IndexedDocuments[pageCrawled.Url] = (CrawlStatus.Visited, record);
+                    IndexedDocuments[pageCrawled.Url] = (CrawlStatus.Visited, cleanRecord with { StatusCode = pageCrawled.StatusCode });
                 }
 
                 // kick off scans of all the links on this page
