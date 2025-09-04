@@ -9,6 +9,7 @@ namespace LinkValidator.Actors;
 /// <summary>
 /// Configuration for the crawler
 /// </summary>
+public sealed record CrawlConfiguration(AbsoluteUri BaseUrl, int MaxInflightRequests, TimeSpan RequestTimeout, int MaxExternalRetries = 3, TimeSpan DefaultExternalRetryDelay = default)
 {
     /// <summary>
     /// The absolute base url - we are only interested in urls stemming from it.
