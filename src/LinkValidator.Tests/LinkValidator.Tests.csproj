@@ -22,6 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="HtmlAgilityPack" VersionOverride="1.12.2" />
         <ProjectReference Include="..\LinkValidator\LinkValidator.csproj"/>
     </ItemGroup>
 
