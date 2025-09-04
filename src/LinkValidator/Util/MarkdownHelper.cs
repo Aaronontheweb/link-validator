@@ -19,7 +19,7 @@ public static class MarkdownHelper
         var document = new MdDocument();
 
         // Add a header
-        document.Root.Add(new MdHeading(1, $"Sitemap for [{GetCleanAbsoluteUrl(baseUri)}]"));
+        document.Root.Add(new MdHeading(1, new MdTextSpan("Sitemap for "), new MdCodeSpan(GetCleanAbsoluteUrl(baseUri))));
         var headerRow = new MdTableRow(new MdTextSpan("URL"), new MdTextSpan("StatusCode"), new MdTextSpan("Linked From"));
         var rows = results
             .Select(kvp => new MdTableRow(
@@ -30,31 +30,59 @@ public static class MarkdownHelper
         // Add a table
         document.Root.Add(new MdTable(headerRow, rows));
 
-        // Add broken links summary
+        // Add broken links summary organized by source page
         var brokenLinks = results.Where(kvp => kvp.Value.StatusCode != HttpStatusCode.OK).ToList();
         if (brokenLinks.Any())
         {
-            document.Root.Add(new MdHeading(2, "🔴 Broken Links Report"));
+            document.Root.Add(new MdHeading(2, "🔴 Pages with Broken Links"));
             
-            foreach (var broken in brokenLinks)
+            // Group broken links by the pages that link to them
+            var pagesBrokenLinks = brokenLinks
+                .SelectMany(broken => broken.Value.LinksToPage
+                    .Select(linkingPage => new { 
+                        SourcePage = GetCleanRelativePath(baseUri, linkingPage),
+                        BrokenUrl = broken.Key,
+                        StatusCode = broken.Value.StatusCode 
+                    }))
+                .GroupBy(x => x.SourcePage)
+                .OrderBy(g => g.Key)
+                .ToList();
+
+            if (pagesBrokenLinks.Any())
             {
-                document.Root.Add(new MdHeading(3, new MdTextSpan($"{broken.Value.StatusCode}: "), new MdCodeSpan(broken.Key)));
-                
-                if (!broken.Value.LinksToPage.IsEmpty)
+                foreach (var pageGroup in pagesBrokenLinks)
                 {
-                    document.Root.Add(new MdParagraph(new MdStrongEmphasisSpan("Fix by updating links in:")));
-                    var linkingPages = broken.Value.LinksToPage
-                        .Select(link => GetCleanRelativePath(baseUri, link))
-                        .Distinct()
-                        .OrderBy(x => x)
-                        .Select(page => new MdListItem(new MdCodeSpan(page)));
+                    document.Root.Add(new MdHeading(3, new MdCodeSpan(pageGroup.Key), new MdTextSpan(" has broken links:")));
                     
-                    document.Root.Add(new MdBulletList(linkingPages));
+                    var brokenLinksForPage = pageGroup
+                        .OrderBy(x => x.BrokenUrl)
+                        .Select(x => new MdListItem(
+                            new MdCodeSpan(x.BrokenUrl), 
+                            new MdTextSpan($" ({x.StatusCode})")))
+                        .ToList();
+                    
+                    document.Root.Add(new MdBulletList(brokenLinksForPage));
                 }
-                else
-                {
-                    document.Root.Add(new MdParagraph(new MdEmphasisSpan("No pages link to this URL (orphaned)")));
-                }
+            }
+            
+            // Handle orphaned broken links (no pages link to them)
+            var orphanedLinks = brokenLinks
+                .Where(broken => broken.Value.LinksToPage.IsEmpty)
+                .ToList();
+                
+            if (orphanedLinks.Any())
+            {
+                document.Root.Add(new MdHeading(3, "🔗 Orphaned broken URLs"));
+                document.Root.Add(new MdParagraph(new MdEmphasisSpan("These URLs are broken but no pages link to them:")));
+                
+                var orphanedItems = orphanedLinks
+                    .OrderBy(x => x.Key)
+                    .Select(x => new MdListItem(
+                        new MdCodeSpan(x.Key), 
+                        new MdTextSpan($" ({x.Value.StatusCode})")))
+                    .ToList();
+                    
+                document.Root.Add(new MdBulletList(orphanedItems));
             }
         }
 

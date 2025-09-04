@@ -1,4 +1,4 @@
-﻿# Sitemap for \[http://localhost:8080/\]
+﻿# Sitemap for `http://localhost:8080/`
 
 | URL                   | StatusCode | Linked From                                             |
 | --------------------- | ---------- | ------------------------------------------------------- |
@@ -9,11 +9,12 @@
 | `/page1.html`         | OK         | `/`, `/index.html`                                      |
 | `/page2.html`         | NotFound   | `/`, `/index.html`                                      |
 
-## 🔴 Broken Links Report
+## 🔴 Pages with Broken Links
 
-### NotFound: `/page2.html`
+### `/` has broken links:
 
-**Fix by updating links in:**
+- `/page2.html` (NotFound)
 
-- `/`
-- `/index.html`
+### `/index.html` has broken links:
+
+- `/page2.html` (NotFound)
