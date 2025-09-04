@@ -119,7 +119,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
 
         _log.Info("Retrying external request for {0} (attempt {1})", retryRequest.Url, retryRequest.RetryCount);
         
-        CrawlExternalPageInternal(retryRequest.Url, retryRequest.RetryCount).PipeTo(Self, Self, result => result);
+        CrawlExternalPage(retryRequest.Url, retryRequest.RetryCount).PipeTo(Self, Self, result => result);
     }
 
     private void HandleCrawlUrl(CrawlUrl msg)
@@ -135,7 +135,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
                 CrawlInternalPage().PipeTo(Self, Self, result => result);
                 break;
             case LinkType.External:
-                CrawlExternalPageInternal(msg.Url, 0).PipeTo(Self, Self, result => result);
+                CrawlExternalPage(msg.Url, 0).PipeTo(Self, Self, result => result);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -181,7 +181,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
         }
     }
 
-    private async Task<ICrawlResult> CrawlExternalPageInternal(AbsoluteUri url, int retryCount)
+    private async Task<ICrawlResult> CrawlExternalPage(AbsoluteUri url, int retryCount)
     {
         // Capture context-dependent references before async operation
         var scheduler = Context.System.Scheduler;
