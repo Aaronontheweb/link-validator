@@ -7,7 +7,6 @@
 using System.Collections.Immutable;
 using System.Net;
 using Akka.Actor;
-using System.Net.Http;
 using Akka.Event;
 using LinkValidator.Util;
 using static LinkValidator.Util.ParseHelpers;
@@ -232,27 +231,16 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
 
     private TimeSpan? ParseRetryAfterHeader(HttpResponseMessage response)
     {
-        if (!response.Headers.TryGetValues("Retry-After", out var retryAfterValues))
+        if (response.Headers.RetryAfter == null)
             return null;
 
-        var retryAfterValue = retryAfterValues.FirstOrDefault();
-        if (string.IsNullOrEmpty(retryAfterValue))
-            return null;
-
-        // Try to parse as seconds first (most common format)
-        if (int.TryParse(retryAfterValue, out var seconds))
-        {
-            return TimeSpan.FromSeconds(seconds);
-        }
-
-        // Try to parse as HTTP date format
-        if (DateTimeOffset.TryParse(retryAfterValue, out var retryAfterDate))
-        {
-            var delay = retryAfterDate - DateTimeOffset.UtcNow;
-            return delay.TotalSeconds > 0 ? delay : TimeSpan.Zero;
-        }
-
-        _log.Warning("Could not parse Retry-After header value: {0}", retryAfterValue);
+        if(response.Headers.RetryAfter.Delta is not null)
+            return response.Headers.RetryAfter.Delta.Value;
+        
+        // convert the date back into a delta
+        if(response.Headers.RetryAfter.Date is not null)
+            return response.Headers.RetryAfter.Date.Value - DateTime.UtcNow;
+        
         return null;
     }
 
