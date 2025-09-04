@@ -68,7 +68,7 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
             case BeginIndexing:
                 _log.Info("Beginning indexing of [{0}]", _crawlConfiguration.BaseUrl);
                 IndexedDocuments[_crawlConfiguration.BaseUrl] = (CrawlStatus.Visiting, null);
-                _crawlers.Tell(new CrawlUrl(_crawlConfiguration.BaseUrl));
+                _crawlers.Tell(new CrawlUrl(_crawlConfiguration.BaseUrl, LinkType.Internal));
                 break;
             case PageCrawled pageCrawled:
             {
@@ -89,7 +89,7 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
                             {
                                 LinksToPage = ImmutableList<AbsoluteUri>.Empty.Add(pageCrawled.Url)
                             });
-                        _crawlers.Tell(new CrawlUrl(p));
+                        _crawlers.Tell(new CrawlUrl(p, LinkType.Internal));
                     }
                     else
                     {
@@ -124,7 +124,7 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
         }
     }
 
-    private bool IsCrawlComplete => IndexedDocuments.Values.All(x => x.status == CrawlStatus.Visited);
+    private bool IsCrawlComplete => IndexedDocuments.Values.All(x => x.status == CrawlStatus.Visited) && ExternalLinks.Values.All(x => x.status == CrawlStatus.Visited);
 
     protected override void PreStart()
     {

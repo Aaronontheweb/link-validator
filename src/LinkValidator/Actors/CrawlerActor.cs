@@ -14,16 +14,26 @@ using static LinkValidator.Util.ParseHelpers;
 
 namespace LinkValidator.Actors;
 
-public record CrawlUrl(AbsoluteUri Url);
+public interface ICrawlResult
+{
+    AbsoluteUri Url { get; }
+    HttpStatusCode StatusCode { get; }
+}
 
-public record PageCrawled(AbsoluteUri Url, HttpStatusCode StatusCode, IReadOnlyList<AbsoluteUri> InternalLinks, IReadOnlyList<AbsoluteUri> ExternalLinks);
+public record CrawlUrl(AbsoluteUri Url, LinkType LinkType);
+
+public record PageCrawled(
+    AbsoluteUri Url,
+    HttpStatusCode StatusCode,
+    IReadOnlyList<AbsoluteUri> InternalLinks,
+    IReadOnlyList<AbsoluteUri> ExternalLinks) : ICrawlResult;
 
 /// <summary>
 /// Indicates whether an external link was found to be valid.
 /// </summary>
 /// <param name="Url">The link Uri</param>
 /// <param name="StatusCode">The crawler status code</param>
-public record ExternalLinkCrawled(AbsoluteUri Url, HttpStatusCode StatusCode);
+public record ExternalLinkCrawled(AbsoluteUri Url, HttpStatusCode StatusCode) : ICrawlResult;
 
 public sealed class CrawlerActor : UntypedActor, IWithStash
 {
@@ -58,8 +68,8 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
                 if (_inflightRequests == _crawlConfiguration.MaxInflightRequests)
                     Become(TooBusy);
                 break;
-            case PageCrawled pageCrawled:
-                HandlePageCrawled(pageCrawled);
+            case ICrawlResult pageCrawled:
+                HandleCrawlResult(pageCrawled);
                 break;
         }
     }
@@ -72,9 +82,8 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
                 // too many in-flight requests right now
                 Stash.Stash();
                 break;
-            case PageCrawled pageCrawled:
-                HandlePageCrawled(pageCrawled);
-
+            case ICrawlResult pageCrawled:
+                HandleCrawlResult(pageCrawled);
                 // switch behaviors back and unstash one message
                 Stash.Unstash();
                 Become(OnReceive);
@@ -82,7 +91,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
         }
     }
 
-    private void HandlePageCrawled(PageCrawled pageCrawled)
+    private void HandleCrawlResult(ICrawlResult pageCrawled)
     {
         _inflightRequests--;
         _coordinator.Tell(pageCrawled);
@@ -95,11 +104,36 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
          * already seen this page before.
          */
         _inflightRequests++;
-
-        DoWork().PipeTo(Self, Self, result => result);
+        switch (msg.LinkType)
+        {
+            case LinkType.Internal:
+                CrawlInternalPage().PipeTo(Self, Self, result => result);
+                break;
+            case LinkType.External:
+                CrawlExternalPage().PipeTo(Self, Self, result => result);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+       
         return;
 
-        async Task<PageCrawled> DoWork()
+        async Task<ICrawlResult> CrawlExternalPage()
+        {
+            try{
+                using var cts = new CancellationTokenSource(_crawlConfiguration.RequestTimeout);
+                var response = await _httpClient.GetAsync(msg.Url.Value, cts.Token);
+                
+                return new ExternalLinkCrawled(msg.Url, response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _log.Warning(ex, "Failed to crawl {0}", msg.Url);
+                return new ExternalLinkCrawled(msg.Url, HttpStatusCode.RequestTimeout);
+            }
+        }
+
+        async Task<ICrawlResult> CrawlInternalPage()
         {
             try
             {
