@@ -27,6 +27,12 @@ public static class CrawlerHelper
         AbsoluteUri url)
     {
         var crawlSettings = new CrawlConfiguration(url, 10, TimeSpan.FromSeconds(5));
+        return await CrawlWebsite(system, url, crawlSettings);
+    }
+    
+    public static async Task<CrawlReport> CrawlWebsite(ActorSystem system,
+        AbsoluteUri url, CrawlConfiguration crawlSettings)
+    {
         var tcs = new TaskCompletionSource<CrawlReport>();
 
         var indexer = system.ActorOf(Props.Create(() => new IndexerActor(crawlSettings, tcs)), "indexer");

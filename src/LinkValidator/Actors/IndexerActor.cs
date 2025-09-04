@@ -145,6 +145,25 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
 
                 break;
             }
+            
+            case ExternalLinkRetryScheduled retryScheduled:
+            {
+                if (ExternalLinks.TryGetValue(retryScheduled.Url, out var tuple))
+                {
+                    var (previousStatus, record) = tuple;
+                    var cleanRecord = record ??= CrawlRecord.Empty(retryScheduled.Url);
+                    
+                    // Mark as Failed to indicate retry is in progress - don't complete crawl yet
+                    ExternalLinks[retryScheduled.Url] = (CrawlStatus.Failed, cleanRecord);
+                }
+                else
+                {
+                    ExternalLinks[retryScheduled.Url] = (CrawlStatus.Failed, CrawlRecord.Empty(retryScheduled.Url));
+                }
+                
+                // Don't check for completion - we're waiting for retry to finish
+                break;
+            }
         }
     }
 
@@ -174,7 +193,8 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
         }
     }
 
-    private bool IsCrawlComplete => IndexedDocuments.Values.All(x => x.status == CrawlStatus.Visited) && ExternalLinks.Values.All(x => x.status == CrawlStatus.Visited);
+    private bool IsCrawlComplete => IndexedDocuments.Values.All(x => x.status == CrawlStatus.Visited) && 
+                                    ExternalLinks.Values.All(x => x.status == CrawlStatus.Visited);
 
     protected override void PreStart()
     {

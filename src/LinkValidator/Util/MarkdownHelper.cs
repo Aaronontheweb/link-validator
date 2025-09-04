@@ -98,8 +98,8 @@ public static class MarkdownHelper
             TableStyle = MdTableStyle.GFM
         });
 
-        // Post-process to remove unwanted escaping of forward slashes
-        return markdown.Replace("\\/", "/");
+        // Post-process to remove unwanted escaping of forward slashes and dashes
+        return markdown.Replace("\\/", "/").Replace("\\-", "-");
     }
 
     private static MdSpan FormatLinksToPageAsMarkdown(ImmutableList<AbsoluteUri> linksToPage, AbsoluteUri baseUri)

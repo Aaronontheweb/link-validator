@@ -34,7 +34,7 @@ public static class UriHelpers
 
     public static bool AbsoluteUriIsInDomain(AbsoluteUri baseUrl, Uri otherUri)
     {
-        return baseUrl.Value.Host == otherUri.Host;
+        return baseUrl.Value.Host == otherUri.Host && baseUrl.Value.Port == otherUri.Port;
     }
 
     public static bool IsAbsoluteUri(string rawUri)

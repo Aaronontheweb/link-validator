@@ -37,6 +37,8 @@ public record PageCrawled(
 /// <param name="StatusCode">The crawler status code</param>
 public record ExternalLinkCrawled(AbsoluteUri Url, HttpStatusCode StatusCode) : ICrawlResult;
 
+public record ExternalLinkRetryScheduled(AbsoluteUri Url, HttpStatusCode StatusCode) : ICrawlResult;
+
 public sealed class CrawlerActor : UntypedActor, IWithStash
 {
     private readonly ILoggingAdapter _log = Context.GetLogger();
@@ -181,6 +183,10 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
 
     private async Task<ICrawlResult> CrawlExternalPageInternal(AbsoluteUri url, int retryCount)
     {
+        // Capture context-dependent references before async operation
+        var scheduler = Context.System.Scheduler;
+        var self = Self;
+        
         try
         {
             using var cts = new CancellationTokenSource(_crawlConfiguration.RequestTimeout);
@@ -188,14 +194,21 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
             
             if (response.StatusCode == HttpStatusCode.TooManyRequests)
             {
+                if (retryCount >= _crawlConfiguration.MaxExternalRetries)
+                {
+                    _log.Warning("Max retries ({0}) exceeded for external URL {1}", 
+                        _crawlConfiguration.MaxExternalRetries, url);
+                    return new ExternalLinkCrawled(url, HttpStatusCode.TooManyRequests);
+                }
+                
                 var baseDelay = ParseRetryAfterHeader(response) ?? _crawlConfiguration.DefaultExternalRetryDelay;
                 var jitteredDelay = AddJitter(baseDelay);
                 _log.Warning("Received 429 TooManyRequests for {0} (retry {1}), scheduling retry in {2} (base: {3})", 
                     url, retryCount, jitteredDelay, baseDelay);
                 
-                Context.System.Scheduler.ScheduleTellOnce(jitteredDelay, Self, new RetryExternalRequest(url, retryCount + 1), Self);
+                scheduler.ScheduleTellOnce(jitteredDelay, self, new RetryExternalRequest(url, retryCount + 1), self);
                 
-                return new ExternalLinkCrawled(url, HttpStatusCode.TooManyRequests);
+                return new ExternalLinkRetryScheduled(url, HttpStatusCode.TooManyRequests);
             }
             
             return new ExternalLinkCrawled(url, response.StatusCode);
