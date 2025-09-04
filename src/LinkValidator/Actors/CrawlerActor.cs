@@ -7,7 +7,6 @@
 using System.Collections.Immutable;
 using System.Net;
 using Akka.Actor;
-using System.Net.Http;
 using Akka.Event;
 using LinkValidator.Util;
 using static LinkValidator.Util.ParseHelpers;
@@ -119,7 +118,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
 
         _log.Info("Retrying external request for {0} (attempt {1})", retryRequest.Url, retryRequest.RetryCount);
         
-        CrawlExternalPageInternal(retryRequest.Url, retryRequest.RetryCount).PipeTo(Self, Self, result => result);
+        CrawlExternalPage(retryRequest.Url, retryRequest.RetryCount).PipeTo(Self, Self, result => result);
     }
 
     private void HandleCrawlUrl(CrawlUrl msg)
@@ -135,7 +134,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
                 CrawlInternalPage().PipeTo(Self, Self, result => result);
                 break;
             case LinkType.External:
-                CrawlExternalPageInternal(msg.Url, 0).PipeTo(Self, Self, result => result);
+                CrawlExternalPage(msg.Url, 0).PipeTo(Self, Self, result => result);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -181,7 +180,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
         }
     }
 
-    private async Task<ICrawlResult> CrawlExternalPageInternal(AbsoluteUri url, int retryCount)
+    private async Task<ICrawlResult> CrawlExternalPage(AbsoluteUri url, int retryCount)
     {
         // Capture context-dependent references before async operation
         var scheduler = Context.System.Scheduler;
@@ -230,29 +229,18 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
         return TimeSpan.FromMilliseconds(jitteredMs);
     }
 
-    private TimeSpan? ParseRetryAfterHeader(HttpResponseMessage response)
+    private static TimeSpan? ParseRetryAfterHeader(HttpResponseMessage response)
     {
-        if (!response.Headers.TryGetValues("Retry-After", out var retryAfterValues))
+        if (response.Headers.RetryAfter == null)
             return null;
 
-        var retryAfterValue = retryAfterValues.FirstOrDefault();
-        if (string.IsNullOrEmpty(retryAfterValue))
-            return null;
-
-        // Try to parse as seconds first (most common format)
-        if (int.TryParse(retryAfterValue, out var seconds))
-        {
-            return TimeSpan.FromSeconds(seconds);
-        }
-
-        // Try to parse as HTTP date format
-        if (DateTimeOffset.TryParse(retryAfterValue, out var retryAfterDate))
-        {
-            var delay = retryAfterDate - DateTimeOffset.UtcNow;
-            return delay.TotalSeconds > 0 ? delay : TimeSpan.Zero;
-        }
-
-        _log.Warning("Could not parse Retry-After header value: {0}", retryAfterValue);
+        if(response.Headers.RetryAfter.Delta is not null)
+            return response.Headers.RetryAfter.Delta.Value;
+        
+        // convert the date back into a delta
+        if(response.Headers.RetryAfter.Date is not null)
+            return response.Headers.RetryAfter.Date.Value - DateTime.UtcNow;
+        
         return null;
     }
 

@@ -1,0 +1,117 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  PROJECT_PATH: 'src/LinkValidator'
+
+jobs:
+  build:
+    name: Build Release Binaries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runtime: [win-x64, linux-x64, osx-x64, osx-arm64]
+        include:
+          - runtime: win-x64
+            extension: '.exe'
+            archive-name: 'link-validator-windows-x64'
+          - runtime: linux-x64
+            extension: ''
+            archive-name: 'link-validator-linux-x64'
+          - runtime: osx-x64
+            extension: ''
+            archive-name: 'link-validator-macos-x64'
+          - runtime: osx-arm64
+            extension: ''
+            archive-name: 'link-validator-macos-arm64'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        global-json-file: global.json
+
+    - name: Update version info from release notes
+      run: pwsh ./build.ps1
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build and publish
+      run: |
+        dotnet publish ${{ env.PROJECT_PATH }} \
+          -c Release \
+          -r ${{ matrix.runtime }} \
+          --self-contained false \
+          -o publish/${{ matrix.runtime }}
+
+    - name: Create archive
+      run: |
+        cd publish/${{ matrix.runtime }}
+        if [ "${{ matrix.runtime }}" == "win-x64" ]; then
+          zip -r ../../${{ matrix.archive-name }}.zip link-validator${{ matrix.extension }}
+        else
+          tar -czf ../../${{ matrix.archive-name }}.tar.gz link-validator${{ matrix.extension }}
+        fi
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.archive-name }}
+        path: |
+          ${{ matrix.archive-name }}.zip
+          ${{ matrix.archive-name }}.tar.gz
+        if-no-files-found: ignore
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Extract version from tag
+      id: version
+      run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Read release notes
+      id: release_notes
+      run: |
+        if [ -f "RELEASE_NOTES.md" ]; then
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          cat RELEASE_NOTES.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        else
+          echo "notes=Release ${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: ${{ steps.version.outputs.version }}
+        body: ${{ steps.release_notes.outputs.notes }}
+        files: |
+          artifacts/**/*.zip
+          artifacts/**/*.tar.gz
+        draft: false
+        prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
