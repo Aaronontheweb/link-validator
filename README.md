@@ -40,25 +40,25 @@ link-validator --url https://example.com --output new-sitemap.md --diff old-site
 **Windows (PowerShell):**
 ```powershell
 # Install to default location and add to PATH
-irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.ps1 | iex
 
 # Install to custom location  
-irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/main/install.ps1 | iex -ArgumentList "-InstallPath", "C:\tools\linkvalidator"
+irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.ps1 | iex -ArgumentList "-InstallPath", "C:\tools\linkvalidator"
 
 # Install without adding to PATH
-irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/main/install.ps1 | iex -ArgumentList "-SkipPath"
+irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.ps1 | iex -ArgumentList "-SkipPath"
 ```
 
 **Linux/macOS (Bash):**
 ```bash
 # Install to default location and add to PATH
-curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.sh | bash
 
 # Install to custom location
-curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/main/install.sh | bash -s -- --dir ~/.local/bin
+curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.sh | bash -s -- --dir ~/.local/bin
 
 # Install without adding to PATH
-curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/main/install.sh | bash -s -- --skip-path
+curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.sh | bash -s -- --skip-path
 ```
 
 ### Option 2: Download Binary
@@ -107,7 +107,7 @@ The documentation includes ready-to-use examples for:
 ```yaml
 # GitHub Actions
 - name: Install LinkValidator
-  run: curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/main/install.sh | bash
+  run: curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.sh | bash
 
 - name: Validate Links
   run: link-validator --url http://localhost:3000 --strict
