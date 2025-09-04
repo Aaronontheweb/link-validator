@@ -46,6 +46,10 @@ public class End2EndSpecs : TestKit, IClassFixture<TestWebServerFixture>
         var crawlResult = await CrawlWebsite(Sys, baseUrl);
         var markdown = GenerateMarkdown(baseUrl, crawlResult);
         
+        _output.WriteLine("=== RAW MARKDOWN OUTPUT ===");
+        _output.WriteLine(markdown);
+        _output.WriteLine("=== END RAW MARKDOWN ===");
+        
         // assert
         await Verify(markdown);
     }
