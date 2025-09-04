@@ -41,7 +41,9 @@ class Program
                 return;
             }
 
-            var system = ActorSystem.Create("CrawlerSystem", "akka.loglevel = INFO");
+            var system = ActorSystem.Create("CrawlerSystem",
+                BootstrapSetup.Create().WithActorRefProvider(ProviderSelection.Local.Instance)
+                    .WithConfig("akka.loglevel = INFO"));
             var absoluteUri = new AbsoluteUri(new Uri(url));
             var results = await CrawlerHelper.CrawlWebsite(system, absoluteUri);
             var markdown = GenerateMarkdown(results);
