@@ -33,8 +33,58 @@ jobs:
         with:
           global-json-file: "./global.json"
 
+      - name: "Update version info from release notes"
+        run: pwsh ./build.ps1
+
       - name: "dotnet build"
         run: dotnet build -c Release
 
       - name: "dotnet test"
         run: dotnet test -c Release
+
+  validate-binary:
+    name: Validate Binary
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v5.0.0
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: "Install .NET SDK"
+        uses: actions/setup-dotnet@v5.0.0
+        with:
+          global-json-file: "./global.json"
+
+      - name: "Update version info from release notes"
+        run: pwsh ./build.ps1
+
+      - name: "Publish single-file binary"
+        run: |
+          dotnet publish src/LinkValidator \
+            --configuration Release \
+            --runtime linux-x64 \
+            --self-contained false \
+            --output ./publish
+
+      - name: "Test binary functionality"
+        run: |
+          chmod +x ./publish/link-validator
+          
+          echo "Testing --version flag..."
+          ./publish/link-validator --version
+          
+          echo "Testing --help flag..."
+          ./publish/link-validator --help
+          
+          echo "Testing invalid URL handling..."
+          if ./publish/link-validator --url "not-a-valid-url" 2>/dev/null; then
+            echo "ERROR: Should have failed with invalid URL"
+            exit 1
+          else
+            echo "✓ Correctly rejected invalid URL"
+          fi
+          
+          echo "✓ Binary validation passed"
