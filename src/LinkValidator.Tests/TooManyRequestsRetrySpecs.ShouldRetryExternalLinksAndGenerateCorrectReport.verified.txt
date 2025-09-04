@@ -1,0 +1,18 @@
+﻿# Sitemap for `http://localhost:8081/`
+
+## Internal Pages
+
+| URL           | StatusCode | Linked From |
+| ------------- | ---------- | ----------- |
+| `/`           | OK         | -          |
+| `/about.html` | OK         | `/`         |
+
+## 🔴 Pages with Broken Links
+
+### `/` has broken links:
+
+- `http://127.0.0.1:8082/always-429` (TooManyRequests)
+
+### `/about.html` has broken links:
+
+- `http://127.0.0.1:8082/another-rate-limited` (TooManyRequests)

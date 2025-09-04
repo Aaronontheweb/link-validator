@@ -4,7 +4,7 @@
 
 | URL                   | StatusCode | Linked From                                             |
 | --------------------- | ---------- | ------------------------------------------------------- |
-| `/`                   | OK         | \-                                                      |
+| `/`                   | OK         | -                                                      |
 | `/about/contact.html` | OK         | `/`, `/about/contact.html`, `/about/index.html` +2 more |
 | `/about/index.html`   | OK         | `/`, `/about/contact.html`, `/about/index.html` +2 more |
 | `/index.html`         | OK         | `/`, `/about/contact.html`, `/about/index.html` +2 more |

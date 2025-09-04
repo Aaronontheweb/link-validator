@@ -21,7 +21,7 @@ public class TestWebServerFixture : IAsyncDisposable
     public string? BaseUrl { get; private set; }
     public Action<string>? Logger { get; set; }
 
-    public TestWebServerFixture StartServer(string contentDirectory)
+    public TestWebServerFixture StartServer(string contentDirectory, int port = TestPort)
     {
         lock (_lock)
         {
@@ -36,7 +36,7 @@ public class TestWebServerFixture : IAsyncDisposable
             _webHost = new WebHostBuilder()
                 .UseKestrel(options =>
                 {
-                    options.Listen(IPAddress.Loopback, TestPort);
+                    options.Listen(IPAddress.Loopback, port);
                     options.Limits.MaxConcurrentConnections = 100;
                     options.Limits.MaxConcurrentUpgradedConnections = 100;
                 })
@@ -68,7 +68,7 @@ public class TestWebServerFixture : IAsyncDisposable
                 .Build();
 
             _webHost.Start();
-            BaseUrl = $"http://localhost:{TestPort}";
+            BaseUrl = $"http://localhost:{port}";
 
             return this;
         }
