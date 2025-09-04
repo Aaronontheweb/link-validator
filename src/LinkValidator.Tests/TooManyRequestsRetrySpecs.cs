@@ -51,9 +51,9 @@ public class TooManyRequestsRetrySpecs : TestKit, IClassFixture<TestWebServerFix
                         <h1>Test Page with Rate Limited Links</h1>
                         <p>This page contains links that will initially return 429.</p>
                         <a href="/about.html">About Page</a>
-                        <a href="http://localhost:8082/always-429">Always Rate Limited</a>
-                        <a href="http://localhost:8082/retry-then-succeed">Eventually Succeeds</a>
-                        <a href="http://localhost:8082/with-retry-after">With Retry-After Header</a>
+                        <a href="http://127.0.0.1:8082/always-429">Always Rate Limited</a>
+                        <a href="http://127.0.0.1:8082/retry-then-succeed">Eventually Succeeds</a>
+                        <a href="http://127.0.0.1:8082/with-retry-after">With Retry-After Header</a>
                     </body>
                 </html>
                 """;
@@ -63,7 +63,7 @@ public class TooManyRequestsRetrySpecs : TestKit, IClassFixture<TestWebServerFix
                     <body>
                         <h1>About Page</h1>
                         <p>Internal page that links to more external resources.</p>
-                        <a href="http://localhost:8082/another-rate-limited">Another Rate Limited Link</a>
+                        <a href="http://127.0.0.1:8082/another-rate-limited">Another Rate Limited Link</a>
                     </body>
                 </html>
                 """;
@@ -189,7 +189,7 @@ public class TooManyRequestsRetrySpecs : TestKit, IClassFixture<TestWebServerFix
                 app.Run(async context =>
                 {
                     var path = context.Request.Path.Value ?? "/";
-                    var url = $"http://localhost:{port}{path}";
+                    var url = $"http://127.0.0.1:{port}{path}";
                     
                     var attemptCount = tracker.IncrementAttempt(url);
                     _output.WriteLine($"Request to {url} - Attempt #{attemptCount}");
