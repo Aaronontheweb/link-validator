@@ -9,12 +9,16 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Akka.TestKit.Xunit2" />
         <PackageReference Include="coverlet.collector"/>
         <PackageReference Include="FluentAssertions"/>
+        <PackageReference Include="Microsoft.AspNetCore.StaticFiles" />
+        <PackageReference Include="Microsoft.AspNetCore.TestHost" />
         <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+        <PackageReference Include="Verify.DiffPlex" />
+        <PackageReference Include="Verify.Xunit" />
         <PackageReference Include="xunit"/>
         <PackageReference Include="xunit.runner.visualstudio"/>
-        <PackageReference Include="Akka.TestKit"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -23,6 +27,25 @@
 
     <ItemGroup>
         <ProjectReference Include="..\LinkValidator\LinkValidator.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="pages\index.html" />
+      <Content Include="pages\index.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="pages\about\index.html" />
+      <Content Include="pages\about\index.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="pages\about\contact.html" />
+      <Content Include="pages\about\contact.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="pages\page1.html" />
+      <Content Include="pages\page1.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

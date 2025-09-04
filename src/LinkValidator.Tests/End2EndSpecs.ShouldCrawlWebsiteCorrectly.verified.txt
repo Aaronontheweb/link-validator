@@ -1,0 +1,20 @@
+﻿# Sitemap for `http://localhost:8080/`
+
+| URL                   | StatusCode | Linked From                                             |
+| --------------------- | ---------- | ------------------------------------------------------- |
+| `/`                   | OK         | \-                                                      |
+| `/about/contact.html` | OK         | `/`, `/about/contact.html`, `/about/index.html` +2 more |
+| `/about/index.html`   | OK         | `/`, `/about/contact.html`, `/about/index.html` +2 more |
+| `/index.html`         | OK         | `/`, `/about/contact.html`, `/about/index.html` +2 more |
+| `/page1.html`         | OK         | `/`, `/index.html`                                      |
+| `/page2.html`         | NotFound   | `/`, `/index.html`                                      |
+
+## 🔴 Pages with Broken Links
+
+### `/` has broken links:
+
+- `/page2.html` (NotFound)
+
+### `/index.html` has broken links:
+
+- `/page2.html` (NotFound)
