@@ -40,6 +40,9 @@ jobs:
       with:
         global-json-file: global.json
 
+    - name: Update version info from release notes
+      run: pwsh ./build.ps1
+
     - name: Restore dependencies
       run: dotnet restore
 
