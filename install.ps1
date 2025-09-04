@@ -10,29 +10,29 @@
     or ~/.linkvalidator on Unix-like systems.
 .PARAMETER Version
     Specific version to install. If not specified, installs the latest release.
-.PARAMETER AddToPath
-    Whether to add the install directory to PATH (requires admin/sudo on some systems)
+.PARAMETER SkipPath
+    Skip adding the install directory to PATH (default is to add to PATH)
 .EXAMPLE
     .\install.ps1
-    Installs the latest version to the default location
+    Installs the latest version to the default location and adds to PATH
 .EXAMPLE
-    .\install.ps1 -InstallPath "C:\tools\linkvalidator" -AddToPath
+    .\install.ps1 -InstallPath "C:\tools\linkvalidator"
     Installs to a custom path and adds to PATH
 .EXAMPLE
-    .\install.ps1 -Version "v1.0.0"
-    Installs a specific version
+    .\install.ps1 -Version "v1.0.0" -SkipPath
+    Installs a specific version without adding to PATH
 #>
 
 param(
     [string]$InstallPath,
     [string]$Version,
-    [switch]$AddToPath
+    [switch]$SkipPath
 )
 
 $ErrorActionPreference = 'Stop'
 
 # Constants
-$REPO_OWNER = "stannardlabs"
+$REPO_OWNER = "Aaronontheweb"
 $REPO_NAME = "link-validator"
 $GITHUB_API_URL = "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME"
 
@@ -125,7 +125,7 @@ try {
     }
     
     # Move binary to install path
-    $BinaryName = "LinkValidator$Extension"
+    $BinaryName = "link-validator$Extension"
     $SourcePath = Join-Path $TempDir $BinaryName
     $DestPath = Join-Path $InstallPath $BinaryName
     
@@ -144,8 +144,8 @@ try {
         Write-Host "Testing installation..." -ForegroundColor Cyan
         & $DestPath --version
         
-        # Add to PATH if requested
-        if ($AddToPath) {
+        # Add to PATH by default unless -SkipPath is specified
+        if (-not $SkipPath) {
             Write-Host "Adding to PATH..." -ForegroundColor Cyan
             
             if ($Platform -eq "windows") {
@@ -153,7 +153,7 @@ try {
                 $CurrentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
                 if ($CurrentPath -notlike "*$InstallPath*") {
                     [Environment]::SetEnvironmentVariable("PATH", "$CurrentPath;$InstallPath", "User")
-                    Write-Host "✓ Added to user PATH. Restart your terminal to use 'LinkValidator' command." -ForegroundColor Green
+                    Write-Host "✓ Added to user PATH. Restart your terminal to use 'link-validator' command." -ForegroundColor Green
                 } else {
                     Write-Host "✓ Already in PATH" -ForegroundColor Green
                 }
@@ -173,7 +173,7 @@ try {
                 }
             }
         } else {
-            Write-Host "Run with -AddToPath to add to your PATH, or use the full path:" -ForegroundColor Yellow
+            Write-Host "Skipped adding to PATH. Use the full path to run:" -ForegroundColor Yellow
             Write-Host "  $DestPath --url https://example.com" -ForegroundColor Yellow
         }
         

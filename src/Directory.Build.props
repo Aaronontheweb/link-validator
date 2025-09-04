@@ -1,17 +1,18 @@
 <Project>
     <PropertyGroup>
-        <Copyright>Copyright © 2019-2024 Aaron Stannard</Copyright>
+        <Copyright>Copyright © 2019-$([System.DateTime]::Now.Year) Aaron Stannard</Copyright>
         <Authors>Aaron Stannard</Authors>
         <VersionPrefix>0.1.0</VersionPrefix>
         <PackageReleaseNotes>Initial release</PackageReleaseNotes>
         <PackageIconUrl>
         </PackageIconUrl>
         <PackageProjectUrl>
-            https://github.com/Aaronontheweb/tailscale-pulumi
+            https://github.com/Aaronontheweb/link-validator
         </PackageProjectUrl>
         <PackageLicenseUrl>
         </PackageLicenseUrl>
         <NoWarn>$(NoWarn);CS1591</NoWarn>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
     <PropertyGroup Label="SharedBuildProperties">
         <TargetFramework>net9.0</TargetFramework>

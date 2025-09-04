@@ -55,9 +55,9 @@ jobs:
       run: |
         cd publish/${{ matrix.runtime }}
         if [ "${{ matrix.runtime }}" == "win-x64" ]; then
-          zip -r ../../${{ matrix.archive-name }}.zip LinkValidator${{ matrix.extension }}
+          zip -r ../../${{ matrix.archive-name }}.zip link-validator${{ matrix.extension }}
         else
-          tar -czf ../../${{ matrix.archive-name }}.tar.gz LinkValidator${{ matrix.extension }}
+          tar -czf ../../${{ matrix.archive-name }}.tar.gz link-validator${{ matrix.extension }}
         fi
 
     - name: Upload artifact

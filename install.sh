@@ -6,7 +6,7 @@
 set -euo pipefail
 
 # Configuration
-REPO_OWNER="stannardlabs"
+REPO_OWNER="Aaronontheweb"
 REPO_NAME="link-validator"
 GITHUB_API_URL="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}"
 DEFAULT_INSTALL_DIR="${HOME}/.linkvalidator"
@@ -45,14 +45,14 @@ USAGE:
 OPTIONS:
     -d, --dir <PATH>        Installation directory (default: ${DEFAULT_INSTALL_DIR})
     -v, --version <VERSION> Specific version to install (default: latest)
-    -p, --add-to-path       Add installation directory to PATH
+    -s, --skip-path         Skip adding installation directory to PATH (default is to add)
     -h, --help             Show this help message
 
 EXAMPLES:
-    $0                                  # Install latest to default location
-    $0 -d /usr/local/bin               # Install to custom directory
-    $0 -v v1.0.0 --add-to-path        # Install specific version and add to PATH
-    $0 --dir ./tools --version v1.0.0  # Install specific version to local directory
+    $0                                  # Install latest to default location and add to PATH
+    $0 -d /usr/local/bin               # Install to custom directory and add to PATH
+    $0 -v v1.0.0 --skip-path          # Install specific version without adding to PATH
+    $0 --dir ./tools --version v1.0.0  # Install specific version to local directory and add to PATH
 
 EOF
 }
@@ -161,7 +161,7 @@ download_and_install() {
     mkdir -p "$install_dir"
     
     # Move binary
-    local binary_name="LinkValidator"
+    local binary_name="link-validator"
     local source_path="${temp_dir}/${binary_name}"
     local dest_path="${install_dir}/${binary_name}"
     
@@ -217,14 +217,14 @@ add_to_path() {
     echo "$path_line" >> "$shell_profile"
     
     log_success "✓ Added to PATH in $shell_profile"
-    log_info "Run 'source $shell_profile' or restart your terminal to use 'LinkValidator' command"
+    log_info "Run 'source $shell_profile' or restart your terminal to use 'link-validator' command"
 }
 
 # Main script
 main() {
     local install_dir="$DEFAULT_INSTALL_DIR"
     local version="latest"
-    local add_to_path_flag=false
+    local skip_path_flag=false
     
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -237,8 +237,8 @@ main() {
                 version="$2"
                 shift 2
                 ;;
-            -p|--add-to-path)
-                add_to_path_flag=true
+            -s|--skip-path)
+                skip_path_flag=true
                 shift
                 ;;
             -h|--help)
@@ -279,12 +279,12 @@ main() {
     # Download and install
     download_and_install "$install_dir" "$platform" "$release_json"
     
-    # Add to PATH if requested
-    if [[ "$add_to_path_flag" == true ]]; then
+    # Add to PATH by default unless --skip-path is specified
+    if [[ "$skip_path_flag" == false ]]; then
         add_to_path "$install_dir"
     else
-        log_warning "Run with --add-to-path to add to your PATH, or use the full path:"
-        log_warning "  ${install_dir}/LinkValidator --url https://example.com"
+        log_warning "Skipped adding to PATH. Use the full path to run:"
+        log_warning "  ${install_dir}/link-validator --url https://example.com"
     fi
     
     log_success "Installation complete!"
