@@ -31,7 +31,7 @@ public static class MarkdownHelper
         document.Root.Add(new MdTable(headerRow, rows));
 
         // Add broken links summary organized by source page
-        var brokenLinks = results.Where(kvp => kvp.Value.StatusCode != HttpStatusCode.OK).ToList();
+        var brokenLinks = results.Where(kvp => kvp.Value.StatusCode >= HttpStatusCode.BadRequest).ToList();
         if (brokenLinks.Any())
         {
             document.Root.Add(new MdHeading(2, "🔴 Pages with Broken Links"));
