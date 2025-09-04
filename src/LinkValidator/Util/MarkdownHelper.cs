@@ -25,7 +25,7 @@ public static class MarkdownHelper
             .Select(kvp => new MdTableRow(
                 new MdCodeSpan(kvp.Key), 
                 new MdTextSpan(kvp.Value.StatusCode.ToString()),
-                new MdTextSpan(FormatLinksToPage(kvp.Value.LinksToPage, baseUri))));
+                FormatLinksToPageAsMarkdown(kvp.Value.LinksToPage, baseUri)));
 
         // Add a table
         document.Root.Add(new MdTable(headerRow, rows));
@@ -38,7 +38,7 @@ public static class MarkdownHelper
             
             foreach (var broken in brokenLinks)
             {
-                document.Root.Add(new MdHeading(3, $"{broken.Value.StatusCode}: {broken.Key}"));
+                document.Root.Add(new MdHeading(3, new MdTextSpan($"{broken.Value.StatusCode}: "), new MdCodeSpan(broken.Key)));
                 
                 if (!broken.Value.LinksToPage.IsEmpty)
                 {
@@ -47,7 +47,7 @@ public static class MarkdownHelper
                         .Select(link => GetCleanRelativePath(baseUri, link))
                         .Distinct()
                         .OrderBy(x => x)
-                        .Select(page => new MdListItem(new MdTextSpan(page)));
+                        .Select(page => new MdListItem(new MdCodeSpan(page)));
                     
                     document.Root.Add(new MdBulletList(linkingPages));
                 }
@@ -67,6 +67,39 @@ public static class MarkdownHelper
         return markdown.Replace("\\/", "/");
     }
 
+    private static MdSpan FormatLinksToPageAsMarkdown(ImmutableList<AbsoluteUri> linksToPage, AbsoluteUri baseUri)
+    {
+        if (linksToPage.IsEmpty)
+            return new MdTextSpan("-");
+
+        var relativeLinks = linksToPage
+            .Select(link => GetCleanRelativePath(baseUri, link))
+            .Distinct()
+            .OrderBy(x => x)
+            .ToList();
+
+        // Create a composite span with code spans for URLs and text spans for separators
+        var spans = new List<MdSpan>();
+        
+        var linksToShow = relativeLinks.Take(3).ToList();
+        for (int i = 0; i < linksToShow.Count; i++)
+        {
+            spans.Add(new MdCodeSpan(linksToShow[i]));
+            if (i < linksToShow.Count - 1)
+            {
+                spans.Add(new MdTextSpan(", "));
+            }
+        }
+
+        if (relativeLinks.Count > 3)
+        {
+            var remaining = relativeLinks.Count - 3;
+            spans.Add(new MdTextSpan($" +{remaining} more"));
+        }
+
+        return new MdCompositeSpan(spans);
+    }
+    
     private static string FormatLinksToPage(ImmutableList<AbsoluteUri> linksToPage, AbsoluteUri baseUri)
     {
         if (linksToPage.IsEmpty)
