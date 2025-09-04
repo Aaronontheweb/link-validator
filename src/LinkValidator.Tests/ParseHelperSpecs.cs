@@ -38,9 +38,9 @@ public class ParseHelperSpecs
 
         // Assert
         uris.Should().HaveCount(3);
-        uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/about")));
-        uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/contact")));
-        uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/faq")));
+        uris.Should().Contain((new AbsoluteUri(new Uri("http://example.com/about")), LinkType.Internal));
+        uris.Should().Contain((new AbsoluteUri(new Uri("http://example.com/contact")), LinkType.Internal));
+        uris.Should().Contain((new AbsoluteUri(new Uri("http://example.com/faq")), LinkType.Internal));
     }
 
     // create a string that contains HTML linking to a few different URLs using absolute links
@@ -71,9 +71,9 @@ public class ParseHelperSpecs
         uris.Should().HaveCount(3);
 
         // notice that we convert the scheme to https
-        uris.Should().Contain(new AbsoluteUri(new Uri("https://example.com/about")));
-        uris.Should().Contain(new AbsoluteUri(new Uri("https://example.com/contact")));
-        uris.Should().Contain(new AbsoluteUri(new Uri("https://example.com/faq")));
+        uris.Should().Contain((new AbsoluteUri(new Uri("https://example.com/about")), LinkType.Internal));
+        uris.Should().Contain((new AbsoluteUri(new Uri("https://example.com/contact")), LinkType.Internal));
+        uris.Should().Contain((new AbsoluteUri(new Uri("https://example.com/faq")), LinkType.Internal));
     }
 
     private const string MixedHtml = """
@@ -100,9 +100,10 @@ public class ParseHelperSpecs
         var uris = ParseHelpers.ParseLinks(MixedHtml, uri);
 
         // Assert
-        uris.Should().HaveCount(2); // don't count the FAKEURL one
-        uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/about")));
-        uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/contact")));
+        uris.Where(c => c.type == LinkType.Internal).Should().HaveCount(2); // don't count the FAKEURL one
+        uris.Where(c => c.type == LinkType.External).Should().HaveCount(1); // do count the FAKEURL one
+        uris.Should().Contain((new AbsoluteUri(new Uri("http://example.com/about")), LinkType.Internal));
+        uris.Should().Contain((new AbsoluteUri(new Uri("http://example.com/contact")), LinkType.Internal));
     }
 
     public const string TweetShareLink = """
@@ -794,7 +795,8 @@ public class ParseHelperSpecs
         var uris = ParseHelpers.ParseLinks(TweetShareLink, uri);
 
         // Assert
-        uris.Should().HaveCount(22);
+        uris.Where(c => c.type == LinkType.Internal).Should().HaveCount(22);
+        uris.Where(c => c.type == LinkType.External).Should().HaveCount(15);
     }
 
     private const string LinkFragmentsHtml = """
@@ -822,7 +824,7 @@ public class ParseHelperSpecs
 
         // Assert
         uris.Should().HaveCount(2);
-        uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/about")));
-        uris.Should().Contain(new AbsoluteUri(new Uri("http://example.com/contact")));
+        uris.Should().Contain((new AbsoluteUri(new Uri("http://example.com/about")), LinkType.Internal));
+        uris.Should().Contain((new AbsoluteUri(new Uri("http://example.com/contact")), LinkType.Internal));
     }
 }

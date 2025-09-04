@@ -23,6 +23,15 @@ public record struct AbsoluteUri
 }
 
 /// <summary>
+/// What type of link are we looking at?
+/// </summary>
+public enum LinkType
+{
+    Internal = 0,
+    External = 1
+}
+
+/// <summary>
 /// This is what we use in our final outputs for uniqueness and comparison
 /// </summary>
 public record struct RelativeUri
