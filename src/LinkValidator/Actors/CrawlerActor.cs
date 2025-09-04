@@ -22,6 +22,8 @@ public interface ICrawlResult
 
 public record CrawlUrl(AbsoluteUri Url, LinkType LinkType);
 
+public record RetryExternalRequest(AbsoluteUri Url, int RetryCount);
+
 public record PageCrawled(
     AbsoluteUri Url,
     HttpStatusCode StatusCode,
@@ -41,6 +43,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
     private readonly CrawlConfiguration _crawlConfiguration;
     private readonly IActorRef _coordinator;
     private readonly HttpClient _httpClient;
+    private readonly Random _random = new();
 
     private int _inflightRequests = 0;
 
@@ -71,6 +74,9 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
             case ICrawlResult pageCrawled:
                 HandleCrawlResult(pageCrawled);
                 break;
+            case RetryExternalRequest retryRequest:
+                HandleRetryExternalRequest(retryRequest);
+                break;
         }
     }
 
@@ -88,6 +94,9 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
                 Stash.Unstash();
                 Become(OnReceive);
                 break;
+            case RetryExternalRequest retryRequest:
+                HandleRetryExternalRequest(retryRequest);
+                break;
         }
     }
 
@@ -95,6 +104,20 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
     {
         _inflightRequests--;
         _coordinator.Tell(pageCrawled);
+    }
+
+    private void HandleRetryExternalRequest(RetryExternalRequest retryRequest)
+    {
+        if (retryRequest.RetryCount > _crawlConfiguration.MaxExternalRetries)
+        {
+            _log.Warning("Max retries ({0}) exceeded for external URL {1}", _crawlConfiguration.MaxExternalRetries, retryRequest.Url);
+            _coordinator.Tell(new ExternalLinkCrawled(retryRequest.Url, HttpStatusCode.TooManyRequests));
+            return;
+        }
+
+        _log.Info("Retrying external request for {0} (attempt {1})", retryRequest.Url, retryRequest.RetryCount);
+        
+        CrawlExternalPageInternal(retryRequest.Url, retryRequest.RetryCount).PipeTo(Self, Self, result => result);
     }
 
     private void HandleCrawlUrl(CrawlUrl msg)
@@ -110,28 +133,13 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
                 CrawlInternalPage().PipeTo(Self, Self, result => result);
                 break;
             case LinkType.External:
-                CrawlExternalPage().PipeTo(Self, Self, result => result);
+                CrawlExternalPageInternal(msg.Url, 0).PipeTo(Self, Self, result => result);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
        
         return;
-
-        async Task<ICrawlResult> CrawlExternalPage()
-        {
-            try{
-                using var cts = new CancellationTokenSource(_crawlConfiguration.RequestTimeout);
-                var response = await _httpClient.GetAsync(msg.Url.Value, cts.Token);
-                
-                return new ExternalLinkCrawled(msg.Url, response.StatusCode);
-            }
-            catch (Exception ex)
-            {
-                _log.Warning(ex, "Failed to crawl {0}", msg.Url);
-                return new ExternalLinkCrawled(msg.Url, HttpStatusCode.RequestTimeout);
-            }
-        }
 
         async Task<ICrawlResult> CrawlInternalPage()
         {
@@ -169,6 +177,70 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
                 return new PageCrawled(msg.Url, HttpStatusCode.RequestTimeout, [], []);
             }
         }
+    }
+
+    private async Task<ICrawlResult> CrawlExternalPageInternal(AbsoluteUri url, int retryCount)
+    {
+        try
+        {
+            using var cts = new CancellationTokenSource(_crawlConfiguration.RequestTimeout);
+            var response = await _httpClient.GetAsync(url.Value, cts.Token);
+            
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                var baseDelay = ParseRetryAfterHeader(response) ?? _crawlConfiguration.DefaultExternalRetryDelay;
+                var jitteredDelay = AddJitter(baseDelay);
+                _log.Warning("Received 429 TooManyRequests for {0} (retry {1}), scheduling retry in {2} (base: {3})", 
+                    url, retryCount, jitteredDelay, baseDelay);
+                
+                Context.System.Scheduler.ScheduleTellOnce(jitteredDelay, Self, new RetryExternalRequest(url, retryCount + 1), Self);
+                
+                return new ExternalLinkCrawled(url, HttpStatusCode.TooManyRequests);
+            }
+            
+            return new ExternalLinkCrawled(url, response.StatusCode);
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Failed to crawl {0}", url);
+            return new ExternalLinkCrawled(url, HttpStatusCode.RequestTimeout);
+        }
+    }
+
+    private TimeSpan AddJitter(TimeSpan baseDelay)
+    {
+        // Add ±25% jitter to prevent thundering herd
+        var jitterRange = baseDelay.TotalMilliseconds * 0.25;
+        var jitterMs = _random.NextDouble() * jitterRange * 2 - jitterRange; // -25% to +25%
+        var jitteredMs = Math.Max(100, baseDelay.TotalMilliseconds + jitterMs); // Minimum 100ms
+        
+        return TimeSpan.FromMilliseconds(jitteredMs);
+    }
+
+    private TimeSpan? ParseRetryAfterHeader(HttpResponseMessage response)
+    {
+        if (!response.Headers.TryGetValues("Retry-After", out var retryAfterValues))
+            return null;
+
+        var retryAfterValue = retryAfterValues.FirstOrDefault();
+        if (string.IsNullOrEmpty(retryAfterValue))
+            return null;
+
+        // Try to parse as seconds first (most common format)
+        if (int.TryParse(retryAfterValue, out var seconds))
+        {
+            return TimeSpan.FromSeconds(seconds);
+        }
+
+        // Try to parse as HTTP date format
+        if (DateTimeOffset.TryParse(retryAfterValue, out var retryAfterDate))
+        {
+            var delay = retryAfterDate - DateTimeOffset.UtcNow;
+            return delay.TotalSeconds > 0 ? delay : TimeSpan.Zero;
+        }
+
+        _log.Warning("Could not parse Retry-After header value: {0}", retryAfterValue);
+        return null;
     }
 
     public IStash Stash { get; set; } = null!;
