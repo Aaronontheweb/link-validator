@@ -96,9 +96,11 @@ jobs:
       id: release_notes
       run: |
         if [ -f "RELEASE_NOTES.md" ]; then
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
-          cat RELEASE_NOTES.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "notes<<RELEASE_NOTES_DELIMITER"
+            cat RELEASE_NOTES.md
+            echo "RELEASE_NOTES_DELIMITER"
+          } >> $GITHUB_OUTPUT
         else
           echo "notes=Release ${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
         fi

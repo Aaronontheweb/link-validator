@@ -163,7 +163,7 @@ try {
                                elseif (Test-Path ~/.bashrc) { "~/.bashrc" } 
                                else { "~/.profile" }
                 
-                $PathLine = "export PATH=`"$InstallPath:`$PATH`""
+                $PathLine = "export PATH=`"$InstallPath:`${PATH}`""
                 
                 if (-not (Get-Content $ShellProfile -ErrorAction SilentlyContinue | Select-String -Pattern [regex]::Escape($InstallPath))) {
                     Add-Content -Path $ShellProfile -Value $PathLine
