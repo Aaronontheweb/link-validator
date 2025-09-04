@@ -248,11 +248,6 @@ LinkValidator generates comprehensive markdown reports showing:
 - The tool respects `Retry-After` headers and adds jitter to delays
 - External link validation happens after internal crawling completes
 
-**Memory usage:**
-- The crawler keeps discovered URLs in memory during execution
-- For very large sites (>10k pages), monitor memory usage
-- Consider crawling specific sections rather than entire domains
-
 ### Debug Information
 
 Run with increased logging to diagnose issues:
