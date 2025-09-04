@@ -12,17 +12,17 @@ namespace LinkValidator.Util;
 
 public static class ParseHelpers
 {
-    public static IReadOnlyList<AbsoluteUri> ParseLinks(string html, AbsoluteUri baseUrl)
+    public static IReadOnlyList<(AbsoluteUri uri, LinkType type)> ParseLinks(string html, AbsoluteUri baseUrl)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
-        IReadOnlyList<AbsoluteUri> links = doc.DocumentNode
+        IReadOnlyList<(AbsoluteUri uri, LinkType type)> links = doc.DocumentNode
             .SelectNodes("//a[@href]")?
             .Select(node => node.GetAttributeValue("href", ""))
             .Where(href => !string.IsNullOrEmpty(href) && CanMakeAbsoluteHttpUri(baseUrl, href))
             .Select(x => ToAbsoluteUri(baseUrl, x))
-            .Where(x => AbsoluteUriIsInDomain(baseUrl, x))
+            .Select(x => (x, AbsoluteUriIsInDomain(baseUrl, x) ? LinkType.Internal : LinkType.External))
             .Distinct() // filter duplicates - we're counting urls, not individual links
             .ToArray() ?? [];
         return links;

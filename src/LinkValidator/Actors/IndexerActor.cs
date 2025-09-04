@@ -55,6 +55,11 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
     }
 
     public Dictionary<AbsoluteUri, (CrawlStatus status, CrawlRecord?)> IndexedDocuments { get; } = new();
+    
+    /// <summary>
+    /// Links that are external to the domain we're crawling.
+    /// </summary>
+    public Dictionary<AbsoluteUri, (CrawlStatus status, CrawlRecord?)> ExternalLinks { get; } = new();
 
     protected override void OnReceive(object message)
     {
@@ -76,7 +81,7 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
                 }
 
                 // kick off scans of all the links on this page
-                foreach (var p in pageCrawled.Links)
+                foreach (var p in pageCrawled.InternalLinks)
                     if (!IndexedDocuments.TryGetValue(p, out var status) || status.status == CrawlStatus.NotVisited)
                     {
                         IndexedDocuments[p] = (CrawlStatus.Visiting,

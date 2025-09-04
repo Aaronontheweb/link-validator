@@ -16,7 +16,14 @@ namespace LinkValidator.Actors;
 
 public record CrawlUrl(AbsoluteUri Url);
 
-public record PageCrawled(AbsoluteUri Url, HttpStatusCode StatusCode, IReadOnlyList<AbsoluteUri> Links);
+public record PageCrawled(AbsoluteUri Url, HttpStatusCode StatusCode, IReadOnlyList<AbsoluteUri> InternalLinks, IReadOnlyList<AbsoluteUri> ExternalLinks);
+
+/// <summary>
+/// Indicates whether an external link was found to be valid.
+/// </summary>
+/// <param name="Url">The link Uri</param>
+/// <param name="StatusCode">The crawler status code</param>
+public record ExternalLinkCrawled(AbsoluteUri Url, HttpStatusCode StatusCode);
 
 public sealed class CrawlerActor : UntypedActor, IWithStash
 {
@@ -113,16 +120,19 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
                      */
                     var processingUri = UriHelpers.GetDirectoryPath(msg.Url);
                     var links = ParseLinks(html, processingUri);
+                    
+                    var internalLinks = links.Where(c => c.type == LinkType.Internal).Select(c => c.uri).ToImmutableArray();
+                    var externalLinks = links.Where(c => c.type == LinkType.External).Select(c => c.uri).ToImmutableArray();
 
-                    return new PageCrawled(msg.Url, response.StatusCode, links);
+                    return new PageCrawled(msg.Url, response.StatusCode, internalLinks, externalLinks);
                 }
 
-                return new PageCrawled(msg.Url, response.StatusCode, Array.Empty<AbsoluteUri>());
+                return new PageCrawled(msg.Url, response.StatusCode, [], []);
             }
             catch (Exception ex)
             {
                 _log.Warning(ex, "Failed to crawl {0}", msg.Url);
-                return new PageCrawled(msg.Url, HttpStatusCode.RequestTimeout, Array.Empty<AbsoluteUri>());
+                return new PageCrawled(msg.Url, HttpStatusCode.RequestTimeout, [], []);
             }
         }
     }
