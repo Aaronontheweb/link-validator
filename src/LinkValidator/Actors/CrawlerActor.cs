@@ -229,7 +229,7 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
         return TimeSpan.FromMilliseconds(jitteredMs);
     }
 
-    private TimeSpan? ParseRetryAfterHeader(HttpResponseMessage response)
+    private static TimeSpan? ParseRetryAfterHeader(HttpResponseMessage response)
     {
         if (response.Headers.RetryAfter == null)
             return null;
