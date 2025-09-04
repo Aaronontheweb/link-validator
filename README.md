@@ -92,139 +92,25 @@ dotnet publish src/LinkValidator -c Release -r <RUNTIME> --self-contained false
 
 LinkValidator is designed to integrate seamlessly into your build pipelines to catch broken links before they reach production.
 
-### GitHub Actions
+📚 **[Complete CI/CD Integration Guide](docs/cicd-integration.md)**
+
+The documentation includes ready-to-use examples for:
+- **GitHub Actions** - Including advanced baseline comparison workflows
+- **Azure DevOps** - With artifact management and parallel validation
+- **Jenkins** - Both declarative and scripted pipelines
+- **GitLab CI** - Multi-stage validation workflows
+- **Docker** - Health checks and multi-stage builds
+- **CircleCI** - Workspace and caching examples
+
+### Quick Example
 
 ```yaml
-name: Link Validation
+# GitHub Actions
+- name: Install LinkValidator
+  run: curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/main/install.sh | bash
 
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-
-jobs:
-  validate-links:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      
-    - name: Install LinkValidator
-      run: |
-        curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/main/install.sh | bash -s -- --add-to-path
-        
-    - name: Validate Links
-      run: |
-        # Deploy your site locally first (example with Jekyll)
-        bundle exec jekyll build
-        bundle exec jekyll serve --detach
-        
-        # Wait for server to start
-        sleep 5
-        
-        # Validate links in strict mode
-        LinkValidator --url http://localhost:4000 --strict
-        
-    - name: Upload sitemap artifact
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: sitemap
-        path: sitemap.md
-```
-
-### Azure DevOps
-
-```yaml
-trigger:
-  branches:
-    include:
-    - main
-    - develop
-
-pool:
-  vmImage: 'ubuntu-latest'
-
-steps:
-- task: Bash@3
-  displayName: 'Install LinkValidator'
-  inputs:
-    targetType: 'inline'
-    script: |
-      curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/main/install.sh | bash -s -- --add-to-path
-
-- task: Bash@3
-  displayName: 'Validate Links'
-  inputs:
-    targetType: 'inline'
-    script: |
-      # Start your local server
-      npm run build
-      npm run serve &
-      sleep 5
-      
-      # Validate with comparison against baseline
-      LinkValidator --url http://localhost:3000 --output current-sitemap.md --diff baseline-sitemap.md --strict
-```
-
-### Jenkins
-
-```groovy
-pipeline {
-    agent any
-    
-    stages {
-        stage('Install LinkValidator') {
-            steps {
-                sh '''
-                    curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/main/install.sh | bash -s -- --dir ./.linkvalidator
-                '''
-            }
-        }
-        
-        stage('Build Site') {
-            steps {
-                sh '''
-                    # Build your static site
-                    npm run build
-                    npm run serve &
-                    sleep 5
-                '''
-            }
-        }
-        
-        stage('Validate Links') {
-            steps {
-                sh '''
-                    ./.linkvalidator/LinkValidator --url http://localhost:3000 --strict --output sitemap.md
-                '''
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'sitemap.md', fingerprint: true
-                }
-            }
-        }
-    }
-}
-```
-
-### Docker Integration
-
-```dockerfile
-FROM mcr.microsoft.com/dotnet/runtime:9.0-alpine AS base
-WORKDIR /app
-
-# Install LinkValidator
-RUN apk add --no-cache curl bash && \
-    curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/main/install.sh | bash -s -- --dir /usr/local/bin
-
-# Your application setup here...
-
-# Validate links as part of health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD LinkValidator --url http://localhost:80 --max-external-retries 1 --retry-delay-seconds 5
+- name: Validate Links
+  run: link-validator --url http://localhost:3000 --strict
 ```
 
 ## 🔧 Usage
