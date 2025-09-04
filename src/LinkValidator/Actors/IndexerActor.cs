@@ -70,6 +70,8 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
                 IndexedDocuments[_crawlConfiguration.BaseUrl] = (CrawlStatus.Visiting, null);
                 _crawlers.Tell(new CrawlUrl(_crawlConfiguration.BaseUrl, LinkType.Internal));
                 break;
+            
+            // new internal page crawled
             case PageCrawled pageCrawled:
             {
                 if (IndexedDocuments.TryGetValue(pageCrawled.Url, out var tuple))
@@ -80,7 +82,7 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
                     IndexedDocuments[pageCrawled.Url] = (CrawlStatus.Visited, cleanRecord with { StatusCode = pageCrawled.StatusCode });
                 }
 
-                // kick off scans of all the links on this page
+                // kick off scans of all the unvisited internal links on this page
                 foreach (var p in pageCrawled.InternalLinks)
                     if (!IndexedDocuments.TryGetValue(p, out var status) || status.status == CrawlStatus.NotVisited)
                     {
@@ -99,32 +101,76 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
                         IndexedDocuments[p] = (status.status,
                             crawlRecord with { LinksToPage = crawlRecord.LinksToPage.Add(pageCrawled.Url) });
                     }
-
-                if (IsCrawlComplete)
+                
+                // kick off scans of all the unvisited external links on this page
+                foreach (var p in pageCrawled.ExternalLinks)
                 {
-                    var pagesByStatusCode =
-                        IndexedDocuments.Values.CountBy(c => c.Item2?.StatusCode ?? HttpStatusCode.ServiceUnavailable)
-                            .Select(c => $"{c.Key}:{c.Value}");
-                    ;
-                    _log.Info("Crawl complete: {0}", string.Join(", ", pagesByStatusCode));
-
-                    var internalLinks = IndexedDocuments
-                        .Where(x => x.Value.status == CrawlStatus.Visited)
-                        .ToImmutableSortedDictionary(
-                            x => UriHelpers.ToRelativeUri(_crawlConfiguration.BaseUrl, x.Key).ToString(),
-                            x => x.Value.Item2 ?? CrawlRecord.Empty(x.Key));
-                    var externalLinks = ExternalLinks.Where(c => c.Value.status == CrawlStatus.Visited)
-                        .ToImmutableSortedDictionary(c => c.Key.ToString(), c => c.Value.Item2 ?? CrawlRecord.Empty(c.Key));
-
-                    var crawlReport = new CrawlReport(_crawlConfiguration.BaseUrl, internalLinks, externalLinks);
-                    
-                    _completionSource.SetResult(crawlReport);
-
-                    Context.Stop(Self);
+                    if(!ExternalLinks.TryGetValue(p, out var status) || status.status == CrawlStatus.NotVisited)
+                    {
+                        ExternalLinks[p] = (CrawlStatus.Visiting, CrawlRecord.Empty(p) with
+                        {
+                            LinksToPage = ImmutableList<AbsoluteUri>.Empty.Add(pageCrawled.Url)
+                        });
+                        _crawlers.Tell(new CrawlUrl(p, LinkType.External));
+                    }
+                    else
+                    {
+                        var crawlRecord = status.Item2 ?? CrawlRecord.Empty(p);
+                        
+                        // we've already visited this page, so let's update the record to include who links here
+                        ExternalLinks[p] = (status.status, crawlRecord with { LinksToPage = crawlRecord.LinksToPage.Add(pageCrawled.Url) });
+                    }
                 }
+
+                CheckForCompletedCrawl();
 
                 break;
             }
+
+            case ExternalLinkCrawled externalLinkCrawled:
+            {
+                if (ExternalLinks.TryGetValue(externalLinkCrawled.Url, out var tuple))
+                {
+                    var (previousStatus, record) = tuple;
+                    var cleanRecord = record ??= CrawlRecord.Empty(externalLinkCrawled.Url);
+                    
+                    ExternalLinks[externalLinkCrawled.Url] = (CrawlStatus.Visited, cleanRecord with { StatusCode = externalLinkCrawled.StatusCode });
+                }
+                else
+                {
+                    ExternalLinks[externalLinkCrawled.Url] = (CrawlStatus.Visited, CrawlRecord.Empty(externalLinkCrawled.Url) with { StatusCode = externalLinkCrawled.StatusCode });
+                }
+                
+                CheckForCompletedCrawl();
+
+                break;
+            }
+        }
+    }
+
+    private void CheckForCompletedCrawl()
+    {
+        if (IsCrawlComplete)
+        {
+            var pagesByStatusCode =
+                IndexedDocuments.Values.CountBy(c => c.Item2?.StatusCode ?? HttpStatusCode.ServiceUnavailable)
+                    .Select(c => $"{c.Key}:{c.Value}");
+                    
+            _log.Info("Crawl complete: {0}", string.Join(", ", pagesByStatusCode));
+
+            var internalLinks = IndexedDocuments
+                .Where(x => x.Value.status == CrawlStatus.Visited)
+                .ToImmutableSortedDictionary(
+                    x => UriHelpers.ToRelativeUri(_crawlConfiguration.BaseUrl, x.Key).ToString(),
+                    x => x.Value.Item2 ?? CrawlRecord.Empty(x.Key));
+            var externalLinks = ExternalLinks.Where(c => c.Value.status == CrawlStatus.Visited)
+                .ToImmutableSortedDictionary(c => c.Key.ToString(), c => c.Value.Item2 ?? CrawlRecord.Empty(c.Key));
+
+            var crawlReport = new CrawlReport(_crawlConfiguration.BaseUrl, internalLinks, externalLinks);
+                    
+            _completionSource.SetResult(crawlReport);
+
+            Context.Stop(Self);
         }
     }
 
