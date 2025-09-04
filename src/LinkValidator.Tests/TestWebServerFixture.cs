@@ -19,13 +19,14 @@ public class TestWebServerFixture : IAsyncDisposable
     private const int TestPort = 8080;
 
     public string? BaseUrl { get; private set; }
+    public Action<string>? Logger { get; set; }
 
     public TestWebServerFixture StartServer(string contentDirectory)
     {
         lock (_lock)
         {
             if (_webHost != null)
-                throw new InvalidOperationException("Server is already started");
+                return this; // Allow multiple calls, return existing server
 
             if (!Directory.Exists(contentDirectory))
                 throw new DirectoryNotFoundException($"Content directory not found: {contentDirectory}");
@@ -36,6 +37,8 @@ public class TestWebServerFixture : IAsyncDisposable
                 .UseKestrel(options =>
                 {
                     options.Listen(IPAddress.Loopback, TestPort);
+                    options.Limits.MaxConcurrentConnections = 100;
+                    options.Limits.MaxConcurrentUpgradedConnections = 100;
                 })
                 .ConfigureServices(services =>
                 {
@@ -43,6 +46,13 @@ public class TestWebServerFixture : IAsyncDisposable
                 })
                 .Configure(app =>
                 {
+                    app.Use(async (context, next) =>
+                    {
+                        Logger?.Invoke($"Request: {context.Request.Method} {context.Request.Path}");
+                        await next();
+                        Logger?.Invoke($"Response: {context.Response.StatusCode} for {context.Request.Path}");
+                    });
+                    
                     app.UseDefaultFiles(new DefaultFilesOptions
                     {
                         FileProvider = new PhysicalFileProvider(Path.GetFullPath(contentDirectory))
