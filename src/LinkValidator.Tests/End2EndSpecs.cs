@@ -12,10 +12,15 @@ using static LinkValidator.Util.MarkdownHelper;
 
 namespace LinkValidator.Tests;
 
-public class End2EndSpecs : TestKit
+public class End2EndSpecs : TestKit, IClassFixture<TestWebServerFixture>
 {
-    public End2EndSpecs(ITestOutputHelper output) : base(output: output)
+    private readonly TestWebServerFixture _webServerFixture;
+    private readonly ITestOutputHelper _output;
+
+    public End2EndSpecs(ITestOutputHelper output, TestWebServerFixture webServerFixture) : base(output: output)
     {
+        _webServerFixture = webServerFixture;
+        _output = output;
     }
     
     public static readonly string RootPagePath = Path.Join(Directory.GetCurrentDirectory(), "pages");
@@ -24,13 +29,16 @@ public class End2EndSpecs : TestKit
     public async Task ShouldCrawlWebsiteCorrectly()
     {
         // sanity check / pre-condition
+        _output.WriteLine($"Current directory: {Directory.GetCurrentDirectory()}");
+        _output.WriteLine($"RootPagePath: {RootPagePath}");
+        _output.WriteLine($"Full RootPagePath: {Path.GetFullPath(RootPagePath)}");
+        
         Assert.True(Directory.Exists(RootPagePath));
         Assert.True(File.Exists(Path.Join(RootPagePath, "index.html")));
         
-        // need to start a process that will serve this content via a localhost address
-        
-        // arrange
-        var baseUrl = new AbsoluteUri(new Uri(RootPagePath));
+        // arrange - start test web server
+        _webServerFixture.StartServer(RootPagePath);
+        var baseUrl = new AbsoluteUri(new Uri(_webServerFixture.BaseUrl!));
         
         // act
         var crawlResult = await CrawlWebsite(Sys, baseUrl);
