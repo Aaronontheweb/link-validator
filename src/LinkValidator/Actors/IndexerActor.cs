@@ -45,10 +45,10 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
     private readonly ILoggingAdapter _log = Context.GetLogger();
     private readonly CrawlConfiguration _crawlConfiguration;
     private IActorRef _crawlers = ActorRefs.Nobody;
-    private readonly TaskCompletionSource<ImmutableSortedDictionary<string, CrawlRecord>> _completionSource;
+    private readonly TaskCompletionSource<CrawlReport> _completionSource;
 
     public IndexerActor(CrawlConfiguration crawlConfiguration,
-        TaskCompletionSource<ImmutableSortedDictionary<string, CrawlRecord>> completionSource)
+        TaskCompletionSource<CrawlReport> completionSource)
     {
         _crawlConfiguration = crawlConfiguration;
         _completionSource = completionSource;
@@ -108,13 +108,17 @@ public sealed class IndexerActor : UntypedActor, IWithTimers
                     ;
                     _log.Info("Crawl complete: {0}", string.Join(", ", pagesByStatusCode));
 
-                    var finalOutput = IndexedDocuments
+                    var internalLinks = IndexedDocuments
                         .Where(x => x.Value.status == CrawlStatus.Visited)
                         .ToImmutableSortedDictionary(
                             x => UriHelpers.ToRelativeUri(_crawlConfiguration.BaseUrl, x.Key).ToString(),
                             x => x.Value.Item2 ?? CrawlRecord.Empty(x.Key));
+                    var externalLinks = ExternalLinks.Where(c => c.Value.status == CrawlStatus.Visited)
+                        .ToImmutableSortedDictionary(c => c.Key.ToString(), c => c.Value.Item2 ?? CrawlRecord.Empty(c.Key));
 
-                    _completionSource.SetResult(finalOutput);
+                    var crawlReport = new CrawlReport(_crawlConfiguration.BaseUrl, internalLinks, externalLinks);
+                    
+                    _completionSource.SetResult(crawlReport);
 
                     Context.Stop(Self);
                 }

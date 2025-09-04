@@ -44,7 +44,7 @@ class Program
             var system = ActorSystem.Create("CrawlerSystem", "akka.loglevel = INFO");
             var absoluteUri = new AbsoluteUri(new Uri(url));
             var results = await CrawlerHelper.CrawlWebsite(system, absoluteUri);
-            var markdown = GenerateMarkdown(absoluteUri, results);
+            var markdown = GenerateMarkdown(results);
 
             _ = system.Terminate();
 

@@ -13,25 +13,24 @@ namespace LinkValidator.Util;
 
 public static class MarkdownHelper
 {
-    public static string GenerateMarkdown(AbsoluteUri baseUri,
-        ImmutableSortedDictionary<string, CrawlRecord> results)
+    public static string GenerateMarkdown(CrawlReport results)
     {
         var document = new MdDocument();
 
         // Add a header
-        document.Root.Add(new MdHeading(1, new MdTextSpan("Sitemap for "), new MdCodeSpan(GetCleanAbsoluteUrl(baseUri))));
+        document.Root.Add(new MdHeading(1, new MdTextSpan("Sitemap for "), new MdCodeSpan(GetCleanAbsoluteUrl(results.RootUri))));
         var headerRow = new MdTableRow(new MdTextSpan("URL"), new MdTextSpan("StatusCode"), new MdTextSpan("Linked From"));
-        var rows = results
+        var rows = results.InternalLinks
             .Select(kvp => new MdTableRow(
                 new MdCodeSpan(kvp.Key), 
                 new MdTextSpan(kvp.Value.StatusCode.ToString()),
-                FormatLinksToPageAsMarkdown(kvp.Value.LinksToPage, baseUri)));
+                FormatLinksToPageAsMarkdown(kvp.Value.LinksToPage, results.RootUri)));
 
         // Add a table
         document.Root.Add(new MdTable(headerRow, rows));
 
         // Add broken links summary organized by source page
-        var brokenLinks = results.Where(kvp => kvp.Value.StatusCode >= HttpStatusCode.BadRequest).ToList();
+        var brokenLinks = results.InternalLinks.Where(kvp => kvp.Value.StatusCode >= HttpStatusCode.BadRequest).ToList();
         if (brokenLinks.Any())
         {
             document.Root.Add(new MdHeading(2, "🔴 Pages with Broken Links"));
@@ -40,7 +39,7 @@ public static class MarkdownHelper
             var pagesBrokenLinks = brokenLinks
                 .SelectMany(broken => broken.Value.LinksToPage
                     .Select(linkingPage => new { 
-                        SourcePage = GetCleanRelativePath(baseUri, linkingPage),
+                        SourcePage = GetCleanRelativePath(results.RootUri, linkingPage),
                         BrokenUrl = broken.Key,
                         StatusCode = broken.Value.StatusCode 
                     }))

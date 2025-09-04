@@ -2,11 +2,19 @@ using System.Collections.Immutable;
 using System.Net;
 using LinkValidator.Actors;
 using LinkValidator.Util;
+using Xunit.Abstractions;
 
 namespace LinkValidator.Tests;
 
 public class ManualMarkdownTest
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public ManualMarkdownTest(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
     [Fact]
     public void TestRawMarkdownOutput()
     {
@@ -20,12 +28,14 @@ public class ManualMarkdownTest
                 ImmutableList<AbsoluteUri>.Empty
                     .Add(baseUri)
                     .Add(new AbsoluteUri(new Uri("http://localhost:8080/index.html")))));
-
-        var markdown = MarkdownHelper.GenerateMarkdown(baseUri, results);
         
-        Console.WriteLine("RAW MARKDOWN:");
-        Console.WriteLine(markdown);
-        Console.WriteLine("END RAW MARKDOWN");
+        var crawlResults = new CrawlReport(baseUri, results, ImmutableSortedDictionary<string, CrawlRecord>.Empty);
+
+        var markdown = MarkdownHelper.GenerateMarkdown(crawlResults);
+        
+        _testOutputHelper.WriteLine("RAW MARKDOWN:");
+        _testOutputHelper.WriteLine(markdown);
+        _testOutputHelper.WriteLine("END RAW MARKDOWN");
         
         // Check for escaping
         Assert.DoesNotContain("\\/", markdown);
