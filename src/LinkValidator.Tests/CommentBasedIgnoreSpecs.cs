@@ -22,7 +22,7 @@ public class CommentBasedIgnoreSpecs
             <html>
                 <body>
                     <a href=""https://www.google.com"">Normal Link</a>
-                    <!-- link-validator-ignore-next -->
+                    <!-- link-validator-ignore -->
                     <a href=""http://localhost:3000"">Ignored Link</a>
                     <a href=""https://www.github.com"">Another Normal Link</a>
                 </body>
@@ -43,7 +43,7 @@ public class CommentBasedIgnoreSpecs
             <html>
                 <body>
                     <a href=""https://www.google.com"">Normal Link</a>
-                    <!-- link-validator-ignore -->
+                    <!-- begin link-validator-ignore -->
                     <div>
                         <a href=""http://localhost:3000"">Ignored Link 1</a>
                         <p>Some text with <a href=""http://localhost:9090"">Ignored Link 2</a></p>
@@ -51,7 +51,7 @@ public class CommentBasedIgnoreSpecs
                             <li><a href=""http://localhost:16686"">Ignored Link 3</a></li>
                         </ul>
                     </div>
-                    <!-- /link-validator-ignore -->
+                    <!-- end link-validator-ignore -->
                     <a href=""https://www.github.com"">Another Normal Link</a>
                 </body>
             </html>";
@@ -70,12 +70,12 @@ public class CommentBasedIgnoreSpecs
         var html = @"
             <html>
                 <body>
-                    <!-- link-validator-ignore -->
+                    <!-- begin link-validator-ignore -->
                     <a href=""http://localhost:3000"">Ignored Link 1</a>
                     <div>
                         <a href=""http://localhost:9090"">Ignored Link 2</a>
                     </div>
-                    <!-- /link-validator-ignore -->
+                    <!-- end link-validator-ignore -->
                     <div>
                         <a href=""https://www.google.com"">Normal Link</a>
                     </div>
@@ -95,7 +95,7 @@ public class CommentBasedIgnoreSpecs
         var html = @"
             <html>
                 <body>
-                    <!-- link-validator-ignore-next -->
+                    <!-- link-validator-ignore -->
                     <a href=""http://localhost:3000"">Ignored Link</a>
                     <a href=""http://localhost:9090"">Not Ignored</a>
                     <a href=""https://www.google.com"">Normal Link</a>
@@ -117,13 +117,13 @@ public class CommentBasedIgnoreSpecs
             <html>
                 <body>
                     <a href=""https://www.google.com"">Normal Link 1</a>
-                    <!-- link-validator-ignore -->
+                    <!-- begin link-validator-ignore -->
                     <a href=""http://localhost:3000"">Ignored Link 1</a>
-                    <!-- /link-validator-ignore -->
+                    <!-- end link-validator-ignore -->
                     <a href=""https://www.github.com"">Normal Link 2</a>
-                    <!-- link-validator-ignore -->
+                    <!-- begin link-validator-ignore -->
                     <a href=""http://localhost:9090"">Ignored Link 2</a>
-                    <!-- /link-validator-ignore -->
+                    <!-- end link-validator-ignore -->
                     <a href=""https://www.stackoverflow.com"">Normal Link 3</a>
                 </body>
             </html>";
@@ -143,11 +143,11 @@ public class CommentBasedIgnoreSpecs
         var html = @"
             <html>
                 <body>
-                    <!-- LINK-VALIDATOR-IGNORE-NEXT -->
+                    <!-- LINK-VALIDATOR-IGNORE -->
                     <a href=""http://localhost:3000"">Ignored Link 1</a>
-                    <!-- Link-Validator-Ignore -->
+                    <!-- Begin Link-Validator-Ignore -->
                     <a href=""http://localhost:9090"">Ignored Link 2</a>
-                    <!-- /LINK-VALIDATOR-IGNORE -->
+                    <!-- END LINK-VALIDATOR-IGNORE -->
                     <a href=""https://www.google.com"">Normal Link</a>
                 </body>
             </html>";

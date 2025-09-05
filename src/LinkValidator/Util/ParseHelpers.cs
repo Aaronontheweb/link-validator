@@ -45,7 +45,8 @@ public static class ParseHelpers
                 var commentText = commentNode.Comment.Trim();
                 // Remove comment delimiters and trim
                 commentText = commentText.Replace("<!--", "").Replace("-->", "").Trim();
-                if (commentText.Equals("link-validator-ignore-next", StringComparison.OrdinalIgnoreCase))
+                // Check for standalone ignore (not "begin")
+                if (commentText.Equals("link-validator-ignore", StringComparison.OrdinalIgnoreCase))
                     return true;
             }
             else if (previousNode.NodeType == HtmlNodeType.Element)
@@ -82,11 +83,11 @@ public static class ParseHelpers
                         // Remove comment delimiters and trim
                         commentText = commentText.Replace("<!--", "").Replace("-->", "").Trim();
                         
-                        if (commentText.Equals("link-validator-ignore", StringComparison.OrdinalIgnoreCase))
+                        if (commentText.Equals("begin link-validator-ignore", StringComparison.OrdinalIgnoreCase))
                         {
                             inIgnoreBlock = true;
                         }
-                        else if (commentText.Equals("/link-validator-ignore", StringComparison.OrdinalIgnoreCase))
+                        else if (commentText.Equals("end link-validator-ignore", StringComparison.OrdinalIgnoreCase))
                         {
                             inIgnoreBlock = false;
                         }
