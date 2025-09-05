@@ -96,10 +96,10 @@ fetch_release_info() {
     
     if [[ "$version" == "latest" ]]; then
         url="${GITHUB_API_URL}/releases/latest"
-        log_info "Fetching latest release..."
+        log_info "Fetching latest release..." >&2
     else
         url="${GITHUB_API_URL}/releases/tags/${version}"
-        log_info "Fetching release: $version"
+        log_info "Fetching release: $version" >&2
     fi
     
     if ! curl -fsSL -H "User-Agent: LinkValidator-Installer" "$url"; then
@@ -127,7 +127,7 @@ download_and_install() {
     # Find appropriate asset
     local asset_name="link-validator-${platform}.tar.gz"
     local download_url
-    download_url=$(echo "$release_json" | grep -A 3 "\"name\": \"$asset_name\"" | grep '"browser_download_url"' | sed 's/.*"browser_download_url": *"\([^"]*\)".*/\1/')
+    download_url=$(echo "$release_json" | grep -o '"browser_download_url":"[^"]*"' | grep "$asset_name" | sed 's/.*"browser_download_url":"\([^"]*\)".*/\1/' | head -1)
     
     if [[ -z "$download_url" ]]; then
         log_error "Could not find asset for platform: $platform"
