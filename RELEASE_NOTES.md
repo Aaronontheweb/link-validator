@@ -1,3 +1,15 @@
+#### 0.1.2 September 5th 2025 ####
+
+**Bug Fixes:**
+- **Improved External Link Validation** - Fixed false positives for legitimate external sites with slow response times ([#80](https://github.com/Aaronontheweb/link-validator/pull/80))
+  - External links that timeout now get retried using existing `--max-external-retries` and `--retry-delay-seconds` configuration
+  - Prevents false positives for legitimate sites that are simply responding slowly
+  - Maintains existing behavior for SSL errors and DNS failures (immediate failure, no retry)
+  - Retry attempts are logged and respect maximum retry limits with jitter
+
+**Dependencies:**
+- Updated HtmlAgilityPack from 1.11.72 to 1.12.2 ([#77](https://github.com/Aaronontheweb/link-validator/pull/77))
+
 #### 0.1.1 September 5th 2025 ####
 
 **New Features:**

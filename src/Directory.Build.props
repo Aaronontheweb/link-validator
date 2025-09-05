@@ -2,26 +2,16 @@
   <PropertyGroup>
     <Copyright>Copyright © 2019-$([System.DateTime]::Now.Year) Aaron Stannard</Copyright>
     <Authors>Aaron Stannard</Authors>
-    <VersionPrefix>0.1.1</VersionPrefix>
-    <PackageReleaseNotes>**New Features:**
-- **HTML Comment-Based Link Ignoring** - Added ability to exclude specific links from validation using HTML comments ([#70](https://github.com/Aaronontheweb/link-validator/pull/70))
-  - Use `&lt;!-- link-validator-ignore --&gt;` to ignore the next link
-  - Use `&lt;!-- begin link-validator-ignore --&gt;` / `&lt;!-- end link-validator-ignore --&gt;` to ignore blocks of links
-  - Comments are case-insensitive and W3C compliant
-  - Perfect for development URLs, local services, or intentionally broken example links
+    <VersionPrefix>0.1.2</VersionPrefix>
+    <PackageReleaseNotes>**Bug Fixes:**
+- **Improved External Link Validation** - Fixed false positives for legitimate external sites with slow response times ([#80](https://github.com/Aaronontheweb/link-validator/pull/80))
+  - External links that timeout now get retried using existing `--max-external-retries` and `--retry-delay-seconds` configuration
+  - Prevents false positives for legitimate sites that are simply responding slowly
+  - Maintains existing behavior for SSL errors and DNS failures (immediate failure, no retry)
+  - Retry attempts are logged and respect maximum retry limits with jitter
 
-**Bug Fixes:**
-- **Fixed External URL Processing** - External URLs now preserve their original scheme and port instead of being incorrectly modified to match the base URL ([#70](https://github.com/Aaronontheweb/link-validator/pull/70))
-- **Install Script Improvements** - Fixed multiple issues with installation scripts ([#69](https://github.com/Aaronontheweb/link-validator/pull/69), [#68](https://github.com/Aaronontheweb/link-validator/pull/68))
-  - Fixed bash script line endings (CRLF to LF conversion)
-  - Fixed JSON parsing for single-line GitHub API responses
-  - Fixed PowerShell PATH variable escaping syntax
-  - Added .NET runtime requirement documentation and detection
-
-**Documentation:**
-- Added comprehensive documentation for HTML comment-based link ignoring feature
-- Added Prerequisites section explaining .NET 9 Runtime requirement
-- Simplified installation instructions with one-liner commands</PackageReleaseNotes>
+**Dependencies:**
+- Updated HtmlAgilityPack from 1.11.72 to 1.12.2 ([#77](https://github.com/Aaronontheweb/link-validator/pull/77))</PackageReleaseNotes>
     <PackageIconUrl>
     </PackageIconUrl>
     <PackageProjectUrl>
