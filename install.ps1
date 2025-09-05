@@ -163,9 +163,9 @@ try {
                                elseif (Test-Path ~/.bashrc) { "~/.bashrc" } 
                                else { "~/.profile" }
                 
-                $PathLine = "export PATH=`"$InstallPath:\`$PATH`""
+                $PathLine = "export PATH=`"${InstallPath}:\`$PATH`""
                 
-                if (-not (Get-Content $ShellProfile -ErrorAction SilentlyContinue | Select-String -Pattern [regex]::Escape($InstallPath))) {
+                if (-not (Test-Path $ShellProfile) -or -not (Get-Content $ShellProfile -ErrorAction SilentlyContinue | Select-String -Pattern ([regex]::Escape($InstallPath)))) {
                     Add-Content -Path $ShellProfile -Value $PathLine
                     Write-Host "✓ Added to $ShellProfile. Run 'source $ShellProfile' or restart your terminal." -ForegroundColor Green
                 } else {
