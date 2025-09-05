@@ -151,6 +151,37 @@ link-validator --url <URL> [OPTIONS]
 | `--help` | Show help information | - |
 | `--version` | Show version information | - |
 
+### Ignoring Links in HTML
+
+LinkValidator supports HTML comments to exclude specific links from validation. This is useful for development URLs, local services, or intentionally broken example links.
+
+#### Ignore Single Link
+
+Use `<!-- link-validator-ignore -->` to ignore just the next link:
+
+```html
+<!-- link-validator-ignore -->
+<a href="http://localhost:3000">This link will be ignored</a>
+<a href="http://localhost:9090">This link will be validated</a>
+```
+
+#### Ignore Block of Links
+
+Use `<!-- begin link-validator-ignore -->` and `<!-- end link-validator-ignore -->` to ignore all links within a section:
+
+```html
+<!-- begin link-validator-ignore -->
+<div>
+  <p>These local development links won't be validated:</p>
+  <a href="http://localhost:3000">Grafana Dashboard</a>
+  <a href="http://localhost:16686">Jaeger UI</a>
+  <a href="http://localhost:9090">Prometheus</a>
+</div>
+<!-- end link-validator-ignore -->
+```
+
+**Note:** Comments are case-insensitive, so `<!-- LINK-VALIDATOR-IGNORE -->`, `<!-- Link-Validator-Ignore -->`, etc. will all work.
+
 ### Environment Variables
 
 Override default values using environment variables:

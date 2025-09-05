@@ -91,13 +91,14 @@ public static class UriHelpers
             resolvedUri = new Uri(rawUri);
         }
 
-        // Ensure the scheme matches the base URI
-        if (resolvedUri.Scheme != baseUri.Value.Scheme)
+        // Only force scheme matching for internal URLs (same domain)
+        // External URLs should preserve their original scheme and port
+        if (resolvedUri.Host == baseUri.Value.Host && resolvedUri.Scheme != baseUri.Value.Scheme)
         {
             var builder = new UriBuilder(resolvedUri)
             {
                 Scheme = baseUri.Value.Scheme,
-                Port = -1, // Prevents adding the default port
+                Port = -1, // Prevents adding the default port for internal URLs
             };
             resolvedUri = builder.Uri;
         }
