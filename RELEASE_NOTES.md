@@ -1,3 +1,25 @@
+#### 0.1.1 September 5th 2025 ####
+
+**New Features:**
+- **HTML Comment-Based Link Ignoring** - Added ability to exclude specific links from validation using HTML comments ([#70](https://github.com/Aaronontheweb/link-validator/pull/70))
+  - Use `<!-- link-validator-ignore -->` to ignore the next link
+  - Use `<!-- begin link-validator-ignore -->` / `<!-- end link-validator-ignore -->` to ignore blocks of links
+  - Comments are case-insensitive and W3C compliant
+  - Perfect for development URLs, local services, or intentionally broken example links
+
+**Bug Fixes:**
+- **Fixed External URL Processing** - External URLs now preserve their original scheme and port instead of being incorrectly modified to match the base URL ([#70](https://github.com/Aaronontheweb/link-validator/pull/70))
+- **Install Script Improvements** - Fixed multiple issues with installation scripts ([#69](https://github.com/Aaronontheweb/link-validator/pull/69), [#68](https://github.com/Aaronontheweb/link-validator/pull/68))
+  - Fixed bash script line endings (CRLF to LF conversion)
+  - Fixed JSON parsing for single-line GitHub API responses
+  - Fixed PowerShell PATH variable escaping syntax
+  - Added .NET runtime requirement documentation and detection
+
+**Documentation:**
+- Added comprehensive documentation for HTML comment-based link ignoring feature
+- Added Prerequisites section explaining .NET 9 Runtime requirement
+- Simplified installation instructions with one-liner commands
+
 #### 0.1.0 September 4th 2025 ####
 
 **Initial Release**
