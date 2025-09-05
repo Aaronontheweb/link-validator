@@ -74,6 +74,16 @@ Write-Host "LinkValidator Installer" -ForegroundColor Green
 Write-Host "Platform: $Platform-$Architecture" -ForegroundColor Cyan
 Write-Host "Install Path: $InstallPath" -ForegroundColor Cyan
 
+# Check for .NET runtime
+try {
+    $null = & dotnet --version 2>$null
+} catch {
+    Write-Host "`nWARNING: .NET runtime not detected!" -ForegroundColor Yellow
+    Write-Host "LinkValidator requires .NET 9 Runtime to run." -ForegroundColor Yellow
+    Write-Host "Download from: https://dotnet.microsoft.com/download/dotnet/9.0" -ForegroundColor Yellow
+    Write-Host "Continuing with installation...`n" -ForegroundColor Cyan
+}
+
 # Get latest release info or specific version
 if ($Version) {
     $ReleaseUrl = "$GITHUB_API_URL/releases/tags/$Version"

@@ -35,13 +35,30 @@ link-validator --url https://example.com --output new-sitemap.md --diff old-site
 
 ## 📦 Installation
 
+### Prerequisites
+
+**Required:** [.NET 9 Runtime](https://dotnet.microsoft.com/download/dotnet/9.0) must be installed on your system to run LinkValidator.
+
+- **Windows:** Download the [.NET 9 Runtime](https://dotnet.microsoft.com/download/dotnet/9.0/runtime)
+- **Linux/macOS:** Install via package manager or download from [Microsoft](https://dotnet.microsoft.com/download/dotnet/9.0)
+
 ### Option 1: Install Script (Recommended)
 
 **Windows (PowerShell):**
 ```powershell
-# Install to default location and add to PATH
 irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.ps1 | iex
+```
 
+**Linux/macOS (Bash):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.sh | bash
+```
+
+<details>
+<summary>Advanced installation options</summary>
+
+**Windows custom options:**
+```powershell
 # Install to custom location  
 irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.ps1 | iex -ArgumentList "-InstallPath", "C:\tools\linkvalidator"
 
@@ -49,17 +66,15 @@ irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.p
 irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.ps1 | iex -ArgumentList "-SkipPath"
 ```
 
-**Linux/macOS (Bash):**
+**Linux/macOS custom options:**
 ```bash
-# Install to default location and add to PATH
-curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.sh | bash
-
 # Install to custom location
 curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.sh | bash -s -- --dir ~/.local/bin
 
 # Install without adding to PATH
 curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.sh | bash -s -- --skip-path
 ```
+</details>
 
 ### Option 2: Download Binary
 
@@ -71,6 +86,8 @@ Download the appropriate binary from the [latest release](https://github.com/Aar
 - **macOS ARM64:** `link-validator-macos-arm64.tar.gz`
 
 Extract and place the binary in your PATH.
+
+**Note:** These binaries require the .NET 9 Runtime to be installed (see Prerequisites above).
 
 ### Option 3: Build from Source
 

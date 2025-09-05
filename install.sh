@@ -264,6 +264,15 @@ main() {
     log_info "Platform: $platform"
     log_info "Install directory: $install_dir"
     
+    # Check for .NET runtime
+    if ! command -v dotnet >/dev/null 2>&1; then
+        log_warning "WARNING: .NET runtime not detected!"
+        log_warning "LinkValidator requires .NET 9 Runtime to run."
+        log_warning "Download from: https://dotnet.microsoft.com/download/dotnet/9.0"
+        log_info "Continuing with installation..."
+        echo ""
+    fi
+    
     # Check dependencies
     for cmd in curl tar grep sed; do
         if ! command -v "$cmd" >/dev/null 2>&1; then
