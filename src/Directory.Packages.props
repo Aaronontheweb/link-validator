@@ -7,6 +7,7 @@
         <PackageVersion Include="FluentAssertions" Version="7.0.0"/>
         <PackageVersion Include="Grynwald.MarkdownGenerator" Version="3.0.106"/>
         <PackageVersion Include="HtmlAgilityPack" Version="1.11.72"/>
+        <PackageVersion Include="Microsoft.NET.ILLink.Tasks" Version="9.0.8" />
         <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1"/>
     </ItemGroup>
     <ItemGroup Label="Test">
