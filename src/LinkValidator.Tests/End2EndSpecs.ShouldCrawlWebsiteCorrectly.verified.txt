@@ -16,13 +16,13 @@
 ### `/` has broken links:
 
 - `/page2.html` (NotFound)
-- `http://getakka.net/broken-link` (NotFound)
+- `https://getakka.net/broken-link` (NotFound)
 
 ### `/about/index.html` has broken links:
 
-- `http://getakka.net/broken-link` (NotFound)
+- `https://getakka.net/broken-link` (NotFound)
 
 ### `/index.html` has broken links:
 
 - `/page2.html` (NotFound)
-- `http://getakka.net/broken-link` (NotFound)
+- `https://getakka.net/broken-link` (NotFound)
