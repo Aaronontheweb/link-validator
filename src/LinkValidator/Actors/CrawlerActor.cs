@@ -186,9 +186,10 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
         var scheduler = Context.System.Scheduler;
         var self = Self;
         
+        using var cts = new CancellationTokenSource(_crawlConfiguration.RequestTimeout);
+        
         try
         {
-            using var cts = new CancellationTokenSource(_crawlConfiguration.RequestTimeout);
             var response = await _httpClient.GetAsync(url.Value, cts.Token);
             
             if (response.StatusCode == HttpStatusCode.TooManyRequests)
@@ -211,6 +212,42 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
             }
             
             return new ExternalLinkCrawled(url, response.StatusCode);
+        }
+        catch (TaskCanceledException tcEx) when (tcEx.InnerException is TimeoutException || cts.Token.IsCancellationRequested)
+        {
+            // This is a timeout - retry if we haven't exceeded max retries
+            if (retryCount < _crawlConfiguration.MaxExternalRetries)
+            {
+                var jitteredDelay = AddJitter(_crawlConfiguration.DefaultExternalRetryDelay);
+                _log.Warning("Request timeout for {0} (retry {1}), scheduling retry in {2}", 
+                    url, retryCount, jitteredDelay);
+                
+                scheduler.ScheduleTellOnce(jitteredDelay, self, new RetryExternalRequest(url, retryCount + 1), self);
+                
+                return new ExternalLinkRetryScheduled(url, HttpStatusCode.RequestTimeout);
+            }
+            
+            _log.Warning("Max retries ({0}) exceeded for external URL {1} after timeout", 
+                _crawlConfiguration.MaxExternalRetries, url);
+            return new ExternalLinkCrawled(url, HttpStatusCode.RequestTimeout);
+        }
+        catch (HttpRequestException httpEx) when (httpEx.InnerException is TaskCanceledException || httpEx.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase))
+        {
+            // This is also a timeout - retry if we haven't exceeded max retries
+            if (retryCount < _crawlConfiguration.MaxExternalRetries)
+            {
+                var jitteredDelay = AddJitter(_crawlConfiguration.DefaultExternalRetryDelay);
+                _log.Warning("Request timeout for {0} (retry {1}), scheduling retry in {2}", 
+                    url, retryCount, jitteredDelay);
+                
+                scheduler.ScheduleTellOnce(jitteredDelay, self, new RetryExternalRequest(url, retryCount + 1), self);
+                
+                return new ExternalLinkRetryScheduled(url, HttpStatusCode.RequestTimeout);
+            }
+            
+            _log.Warning("Max retries ({0}) exceeded for external URL {1} after timeout", 
+                _crawlConfiguration.MaxExternalRetries, url);
+            return new ExternalLinkCrawled(url, HttpStatusCode.RequestTimeout);
         }
         catch (Exception ex)
         {
