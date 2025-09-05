@@ -96,10 +96,10 @@ fetch_release_info() {
     
     if [[ "$version" == "latest" ]]; then
         url="${GITHUB_API_URL}/releases/latest"
-        log_info "Fetching latest release..."
+        log_info "Fetching latest release..." >&2
     else
         url="${GITHUB_API_URL}/releases/tags/${version}"
-        log_info "Fetching release: $version"
+        log_info "Fetching release: $version" >&2
     fi
     
     if ! curl -fsSL -H "User-Agent: LinkValidator-Installer" "$url"; then
@@ -127,7 +127,7 @@ download_and_install() {
     # Find appropriate asset
     local asset_name="link-validator-${platform}.tar.gz"
     local download_url
-    download_url=$(echo "$release_json" | grep -A 3 "\"name\": \"$asset_name\"" | grep '"browser_download_url"' | sed 's/.*"browser_download_url": *"\([^"]*\)".*/\1/')
+    download_url=$(echo "$release_json" | grep -o '"browser_download_url":"[^"]*"' | grep "$asset_name" | sed 's/.*"browser_download_url":"\([^"]*\)".*/\1/' | head -1)
     
     if [[ -z "$download_url" ]]; then
         log_error "Could not find asset for platform: $platform"
@@ -263,6 +263,15 @@ main() {
     platform=$(detect_platform)
     log_info "Platform: $platform"
     log_info "Install directory: $install_dir"
+    
+    # Check for .NET runtime
+    if ! command -v dotnet >/dev/null 2>&1; then
+        log_warning "WARNING: .NET runtime not detected!"
+        log_warning "LinkValidator requires .NET 9 Runtime to run."
+        log_warning "Download from: https://dotnet.microsoft.com/download/dotnet/9.0"
+        log_info "Continuing with installation..."
+        echo ""
+    fi
     
     # Check dependencies
     for cmd in curl tar grep sed; do
