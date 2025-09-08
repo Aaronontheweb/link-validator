@@ -16,6 +16,7 @@
         <PackageReference Include="Akka"/>
         <PackageReference Include="Grynwald.MarkdownGenerator"/>
         <PackageReference Include="HtmlAgilityPack"/>
+    <PackageReference Include="Microsoft.NET.ILLink.Tasks" />
         <PackageReference Include="System.CommandLine"/>
     </ItemGroup>
 
