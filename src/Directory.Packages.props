@@ -11,7 +11,7 @@
     </ItemGroup>
     <ItemGroup Label="Test">
         <PackageVersion Include="Akka.TestKit" Version="1.5.39"/>
-        <PackageVersion Include="Akka.TestKit.Xunit2" Version="1.5.39"/>
+        <PackageVersion Include="Akka.TestKit.Xunit2" Version="1.5.48"/>
         <PackageVersion Include="coverlet.collector" Version="6.0.4"/>
         <PackageVersion Include="Microsoft.AspNetCore.StaticFiles" Version="2.3.0"/>
         <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="9.0.1"/>
