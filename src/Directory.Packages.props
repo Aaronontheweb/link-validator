@@ -7,7 +7,7 @@
         <PackageVersion Include="FluentAssertions" Version="7.0.0"/>
         <PackageVersion Include="Grynwald.MarkdownGenerator" Version="3.0.106"/>
         <PackageVersion Include="HtmlAgilityPack" Version="1.12.3"/>
-        <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1"/>
+        <PackageVersion Include="System.CommandLine" Version="2.0.3"/>
     </ItemGroup>
     <ItemGroup Label="Test">
         <PackageVersion Include="Akka.TestKit" Version="1.5.39"/>
