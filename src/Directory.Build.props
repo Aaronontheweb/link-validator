@@ -2,16 +2,16 @@
   <PropertyGroup>
     <Copyright>Copyright © 2019-$([System.DateTime]::Now.Year) Aaron Stannard</Copyright>
     <Authors>Aaron Stannard</Authors>
-    <VersionPrefix>0.1.2</VersionPrefix>
-    <PackageReleaseNotes>**Bug Fixes:**
-- **Improved External Link Validation** - Fixed false positives for legitimate external sites with slow response times ([#80](https://github.com/Aaronontheweb/link-validator/pull/80))
-  - External links that timeout now get retried using existing `--max-external-retries` and `--retry-delay-seconds` configuration
-  - Prevents false positives for legitimate sites that are simply responding slowly
-  - Maintains existing behavior for SSL errors and DNS failures (immediate failure, no retry)
-  - Retry attempts are logged and respect maximum retry limits with jitter
+    <VersionPrefix>0.2.0</VersionPrefix>
+    <PackageReleaseNotes>**New Features:**
+- **Authenticated Crawling** - Added `--cookie-file` option for validating links behind login pages ([#145](https://github.com/Aaronontheweb/link-validator/pull/145))
+  - Accepts Netscape/Mozilla format cookie files (e.g. from `curl -c cookies.txt`)
+  - Handles curl's `#HttpOnly_` prefix convention for HttpOnly cookies
+  - Cookies are shared across all crawler workers for consistent authenticated access
+  - Enables CI/CD link validation for apps that require authentication
 
-**Dependencies:**
-- Updated HtmlAgilityPack from 1.11.72 to 1.12.2 ([#77](https://github.com/Aaronontheweb/link-validator/pull/77))</PackageReleaseNotes>
+**Bug Fixes:**
+- **Fixed Flaky E2E Test** - Removed external network dependency from end-to-end test ([#145](https://github.com/Aaronontheweb/link-validator/pull/145))</PackageReleaseNotes>
     <PackageIconUrl>
     </PackageIconUrl>
     <PackageProjectUrl>
