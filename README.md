@@ -14,6 +14,7 @@ A fast, reliable CLI tool for crawling websites and validating both internal and
 - **CI/CD Ready** - Perfect for automated testing in build pipelines
 - **Cross-Platform** - Single-file binaries for Windows, Linux, and macOS (Intel + Apple Silicon)
 - **Diff Support** - Compare current crawl results against previous runs to detect changes
+- **Authenticated Crawling** - Supply a cookie file to validate links behind login pages
 - **Flexible Configuration** - CLI flags and environment variables for easy customization
 
 ## 🚀 Quick Start
@@ -146,6 +147,7 @@ link-validator --url <URL> [OPTIONS]
 | `--output <PATH>` | Save sitemap report to file | Print to stdout |
 | `--diff <PATH>` | Compare against previous sitemap file | - |
 | `--strict` | Return error code if broken links found | `false` |
+| `--cookie-file <PATH>` | Netscape/Mozilla cookie file for authenticated crawling | - |
 | `--max-external-retries <N>` | Max retries for external 429 responses | `3` |
 | `--retry-delay-seconds <N>` | Default retry delay (when no Retry-After header) | `10` |
 | `--help` | Show help information | - |
@@ -181,6 +183,58 @@ Use `<!-- begin link-validator-ignore -->` and `<!-- end link-validator-ignore -
 ```
 
 **Note:** Comments are case-insensitive, so `<!-- LINK-VALIDATOR-IGNORE -->`, `<!-- Link-Validator-Ignore -->`, etc. will all work.
+
+### Validating Authenticated Pages
+
+Many web applications require authentication to access most of their pages. Without credentials, the crawler only sees the login page. The `--cookie-file` option lets you pass session cookies so the crawler can reach authenticated areas.
+
+The cookie file uses the [Netscape/Mozilla cookie format](https://curl.se/docs/http-cookies.html) — the same format produced by `curl -c`.
+
+#### Step 1: Acquire a session cookie
+
+Use `curl -c` to authenticate and save the resulting cookies:
+
+```bash
+# For apps with a dev/test login endpoint
+curl -c cookies.txt -L http://localhost:5000/dev-login
+
+# For apps with a form-based login
+curl -c cookies.txt -L -d "username=admin&password=secret" http://localhost:5000/login
+
+# For APIs that return a Set-Cookie header
+curl -c cookies.txt -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"secret"}'
+```
+
+#### Step 2: Crawl with the cookie file
+
+```bash
+link-validator --url http://localhost:5000 --cookie-file cookies.txt --output report.md
+```
+
+The cookies are shared across all crawler workers, so every page request includes the session cookie. The crawler will discover and validate links on authenticated pages just like unauthenticated ones.
+
+#### CI/CD example (GitHub Actions)
+
+```yaml
+- name: "Get auth cookie"
+  run: curl -c cookies.txt -L -s http://localhost:5000/dev-login
+
+- name: "Validate links"
+  run: |
+    link-validator \
+      --url http://localhost:5000 \
+      --cookie-file cookies.txt \
+      --output link-report.md \
+      --max-external-retries 3
+```
+
+#### Tips
+
+- **Use a test/dev login endpoint** — avoid putting real credentials in CI pipelines.
+- **Cookie expiry** — session cookies from `curl -c` typically last long enough for a crawl. If your sessions are very short-lived, increase the session timeout in your test configuration.
+- **HttpOnly cookies** — `curl -c` writes HttpOnly cookies with a `#HttpOnly_` prefix. LinkValidator handles this automatically.
 
 ### Environment Variables
 

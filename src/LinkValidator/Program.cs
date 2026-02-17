@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System.CommandLine;
+using System.Net;
 using Akka.Actor;
 using LinkValidator.Actors;
 using LinkValidator.Util;
@@ -38,6 +39,8 @@ class Program
             "Maximum retry attempts for external URLs returning 429 (default: 3)");
         var retryDelayOption = new Option<int>("--retry-delay-seconds", GetRetryDelaySeconds,
             "Default retry delay in seconds when no Retry-After header is present (default: 10)");
+        var cookieFileOption = new Option<string?>("--cookie-file",
+            "Path to Netscape/Mozilla format cookie file (e.g. from: curl -c cookies.txt <url>)");
 
         var rootCommand = new RootCommand(
             "LinkValidator: used to crawl a website and report on both internal / link status." + Environment.NewLine + " Use in CI/CD pipelines to find broken links.")
@@ -47,10 +50,11 @@ class Program
             diffOption,
             strictOption,
             maxRetriesOption,
-            retryDelayOption
+            retryDelayOption,
+            cookieFileOption
         };
 
-        rootCommand.SetHandler(async (url, output, diff, strict, maxRetries, retryDelay) =>
+        rootCommand.SetHandler(async (url, output, diff, strict, maxRetries, retryDelay, cookieFile) =>
         {
             if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
             {
@@ -61,12 +65,26 @@ class Program
 
             var system = ActorSystem.Create("CrawlerSystem", "akka.loglevel = INFO");
             var absoluteUri = new AbsoluteUri(new Uri(url));
+
+            System.Net.CookieContainer? cookies = null;
+            if (!string.IsNullOrEmpty(cookieFile))
+            {
+                if (!File.Exists(cookieFile))
+                {
+                    await Console.Error.WriteLineAsync($"Cookie file not found: {cookieFile}");
+                    Environment.Exit(1);
+                    return;
+                }
+                cookies = CookieFileParser.Parse(cookieFile);
+            }
+
             var crawlSettings = new CrawlConfiguration(
-                absoluteUri, 
-                10, 
-                TimeSpan.FromSeconds(5), 
-                maxRetries, 
-                TimeSpan.FromSeconds(retryDelay));
+                absoluteUri,
+                10,
+                TimeSpan.FromSeconds(5),
+                maxRetries,
+                TimeSpan.FromSeconds(retryDelay),
+                cookies);
             var results = await CrawlerHelper.CrawlWebsite(system, absoluteUri, crawlSettings);
             var markdown = GenerateMarkdown(results);
 
@@ -95,7 +113,7 @@ class Program
                     Environment.Exit(1);
                 }
             }
-        }, urlOption, outputOption, diffOption, strictOption, maxRetriesOption, retryDelayOption);
+        }, urlOption, outputOption, diffOption, strictOption, maxRetriesOption, retryDelayOption, cookieFileOption);
 
         return await rootCommand.InvokeAsync(args);
     }
