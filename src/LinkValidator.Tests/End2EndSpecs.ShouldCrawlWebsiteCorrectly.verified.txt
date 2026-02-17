@@ -1,4 +1,4 @@
-﻿# Sitemap for `http://localhost:8080/`
+# Sitemap for `http://localhost:8080/`
 
 ## Internal Pages
 
@@ -16,13 +16,7 @@
 ### `/` has broken links:
 
 - `/page2.html` (NotFound)
-- `https://getakka.net/broken-link` (NotFound)
-
-### `/about/index.html` has broken links:
-
-- `https://getakka.net/broken-link` (NotFound)
 
 ### `/index.html` has broken links:
 
 - `/page2.html` (NotFound)
-- `https://getakka.net/broken-link` (NotFound)
