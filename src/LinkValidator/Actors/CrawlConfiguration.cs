@@ -4,12 +4,14 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System.Net;
+
 namespace LinkValidator.Actors;
 
 /// <summary>
 /// Configuration for the crawler
 /// </summary>
-public sealed record CrawlConfiguration(AbsoluteUri BaseUrl, int MaxInflightRequests, TimeSpan RequestTimeout, int MaxExternalRetries = 3, TimeSpan DefaultExternalRetryDelay = default)
+public sealed record CrawlConfiguration(AbsoluteUri BaseUrl, int MaxInflightRequests, TimeSpan RequestTimeout, int MaxExternalRetries = 3, TimeSpan DefaultExternalRetryDelay = default, CookieContainer? Cookies = null)
 {
     /// <summary>
     /// The absolute base url - we are only interested in urls stemming from it.
@@ -35,4 +37,9 @@ public sealed record CrawlConfiguration(AbsoluteUri BaseUrl, int MaxInflightRequ
     /// Default delay for retrying external requests when no Retry-After header is present
     /// </summary>
     public TimeSpan DefaultExternalRetryDelay { get; } = DefaultExternalRetryDelay == default ? TimeSpan.FromSeconds(10) : DefaultExternalRetryDelay;
+
+    /// <summary>
+    /// Optional cookie container for authenticated crawling (e.g. from a Netscape cookie file).
+    /// </summary>
+    public CookieContainer? Cookies { get; } = Cookies;
 }

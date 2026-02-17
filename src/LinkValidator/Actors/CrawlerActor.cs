@@ -50,7 +50,13 @@ public sealed class CrawlerActor : UntypedActor, IWithStash
 
     public CrawlerActor(CrawlConfiguration crawlConfiguration, IActorRef coordinator)
     {
-        _httpClient = new HttpClient()
+        var handler = new HttpClientHandler();
+        if (crawlConfiguration.Cookies is not null)
+        {
+            handler.CookieContainer = crawlConfiguration.Cookies;
+            handler.UseCookies = true;
+        }
+        _httpClient = new HttpClient(handler)
         {
             DefaultRequestHeaders =
             {
