@@ -1,3 +1,15 @@
+#### 0.2.0 February 17th 2026 ####
+
+**New Features:**
+- **Authenticated Crawling** - Added `--cookie-file` option for validating links behind login pages ([#145](https://github.com/Aaronontheweb/link-validator/pull/145))
+  - Accepts Netscape/Mozilla format cookie files (e.g. from `curl -c cookies.txt <url>`)
+  - Handles curl's `#HttpOnly_` prefix convention for HttpOnly cookies
+  - Cookies are shared across all crawler workers for consistent authenticated access
+  - Enables CI/CD link validation for apps that require authentication
+
+**Bug Fixes:**
+- **Fixed Flaky E2E Test** - Removed external network dependency from end-to-end test that caused non-deterministic failures when `getakka.net` responded slowly ([#145](https://github.com/Aaronontheweb/link-validator/pull/145))
+
 #### 0.1.2 September 5th 2025 ####
 
 **Bug Fixes:**
