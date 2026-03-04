@@ -3,7 +3,7 @@
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     </PropertyGroup>
     <ItemGroup Label="App">
-        <PackageVersion Include="Akka" Version="1.5.60"/>
+        <PackageVersion Include="Akka" Version="1.5.62"/>
         <PackageVersion Include="FluentAssertions" Version="7.0.0"/>
         <PackageVersion Include="Grynwald.MarkdownGenerator" Version="3.0.106"/>
         <PackageVersion Include="HtmlAgilityPack" Version="1.12.3"/>
