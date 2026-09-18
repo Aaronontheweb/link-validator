@@ -1,10 +1,9 @@
-﻿// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 // <copyright file="AbsoluteUriSpecs.cs">
 //      Copyright (C) 2025 - 2025 Aaron Stannard <https://aaronstannard.com/>
 // </copyright>
 // -----------------------------------------------------------------------
 
-using FluentAssertions;
 using LinkValidator.Actors;
 
 namespace LinkValidator.Tests;
@@ -26,7 +25,7 @@ public class AbsoluteUriSpecs
         Action act = () => new AbsoluteUri(uri);
 
         // Assert
-        act.Should().Throw<ArgumentException>();
+        Assert.Throws<ArgumentException>(act);
     }
 
     [Fact]
@@ -36,8 +35,8 @@ public class AbsoluteUriSpecs
         var uri2 = new AbsoluteUri(new Uri(Uri1.Value.ToString()));
 
         // Assert
-        uri2.Should().Be(Uri1);
-        Uri1.GetHashCode().Should().Be(uri2.GetHashCode());
+        Assert.Equal(Uri1, uri2);
+        Assert.Equal(Uri1.GetHashCode(), uri2.GetHashCode());
     }
 
     [Fact]
@@ -50,6 +49,6 @@ public class AbsoluteUriSpecs
         var result = uri.ToString();
 
         // Assert
-        result.Should().Be("https://example.com/path-to-file.html");
+        Assert.Equal("https://example.com/path-to-file.html", result);
     }
 }

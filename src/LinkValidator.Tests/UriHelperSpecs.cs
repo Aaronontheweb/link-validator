@@ -4,7 +4,6 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using FluentAssertions;
 using LinkValidator.Actors;
 using LinkValidator.Util;
 
@@ -28,7 +27,7 @@ public class UriHelperSpecs
         var result = UriHelpers.CanMakeAbsoluteHttpUri(baseUri, rawUri);
 
         // Assert
-        result.Should().Be(expected);
+        Assert.Equal(expected, result);
     }
 
     [Theory]
@@ -46,7 +45,7 @@ public class UriHelperSpecs
         var result = UriHelpers.AbsoluteUriIsInDomain(baseUrl, otherUri);
 
         // Assert
-        result.Should().BeTrue();
+        Assert.True(result);
     }
 
     // write an inverse of the previous test
@@ -62,7 +61,7 @@ public class UriHelperSpecs
         var result = UriHelpers.AbsoluteUriIsInDomain(baseUrl, otherUri);
 
         // Assert
-        result.Should().BeFalse();
+        Assert.False(result);
     }
 
     public static readonly TheoryData<AbsoluteUri, string, AbsoluteUri> ToAbsoluteUriData = new()
@@ -142,7 +141,7 @@ public class UriHelperSpecs
         var result = UriHelpers.ToAbsoluteUri(baseUri, rawUri);
 
         // Assert
-        result.Should().Be(expected);
+        Assert.Equal(expected, result);
     }
 
     public static readonly TheoryData<AbsoluteUri, string, RelativeUri> ToRelativeUriData = new()
@@ -188,7 +187,7 @@ public class UriHelperSpecs
         var result = UriHelpers.ToRelativeUri(baseUri, absoluteUri);
 
         // Assert
-        result.Should().Be(expected);
+        Assert.Equal(expected, result);
     }
 
     [Theory]
@@ -207,7 +206,7 @@ public class UriHelperSpecs
         var result = UriHelpers.IsFileUrl(testUri);
 
         // Assert
-        result.Should().Be(expected);
+        Assert.Equal(expected, result);
     }
 
     public static readonly TheoryData<AbsoluteUri, AbsoluteUri> GetDirectoryData = new()
@@ -230,6 +229,6 @@ public class UriHelperSpecs
         var testUri = UriHelpers.GetDirectoryPath(actualUri);
 
         // Assert
-        testUri.Should().Be(expectedUri);
+        Assert.Equal(expectedUri, testUri);
     }
 }

@@ -4,7 +4,6 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using FluentAssertions;
 using LinkValidator.Actors;
 
 namespace LinkValidator.Tests;
@@ -23,7 +22,7 @@ public class RelativeUriSpecs
         Action act = () => new RelativeUri(uri);
 
         // Assert
-        act.Should().Throw<ArgumentException>();
+        Assert.Throws<ArgumentException>(act);
     }
 
     [Fact]
@@ -33,8 +32,8 @@ public class RelativeUriSpecs
         var uri2 = new RelativeUri(new Uri(Uri1.Value.ToString(), UriKind.Relative));
 
         // Assert
-        uri2.Should().Be(Uri1);
-        Uri1.GetHashCode().Should().Be(uri2.GetHashCode());
+        Assert.Equal(Uri1, uri2);
+        Assert.Equal(Uri1.GetHashCode(), uri2.GetHashCode());
     }
 
     [Fact]
@@ -47,6 +46,6 @@ public class RelativeUriSpecs
         var result = uri.ToString();
 
         // Assert
-        result.Should().Be("/path-to-file.html");
+        Assert.Equal("/path-to-file.html", result);
     }
 }

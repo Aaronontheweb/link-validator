@@ -4,7 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using FluentAssertions;
+using System.Net;
 using LinkValidator.Util;
 
 namespace LinkValidator.Tests;
@@ -37,12 +37,12 @@ public class CookieFileParserSpecs : IDisposable
         var container = CookieFileParser.Parse(_tempFile);
         var cookies = container.GetAllCookies();
 
-        cookies.Should().HaveCount(1);
-        cookies[0].Name.Should().Be("session");
-        cookies[0].Value.Should().Be("abc123");
-        cookies[0].Domain.Should().Be("example.com");
-        cookies[0].Path.Should().Be("/");
-        cookies[0].Secure.Should().BeFalse();
+        Assert.Single(cookies.Cast<Cookie>());
+        Assert.Equal("session", cookies[0].Name);
+        Assert.Equal("abc123", cookies[0].Value);
+        Assert.Equal("example.com", cookies[0].Domain);
+        Assert.Equal("/", cookies[0].Path);
+        Assert.False(cookies[0].Secure);
     }
 
     [Fact]
@@ -57,10 +57,10 @@ public class CookieFileParserSpecs : IDisposable
         var container = CookieFileParser.Parse(_tempFile);
         var cookies = container.GetAllCookies();
 
-        cookies.Should().HaveCount(1);
-        cookies[0].Name.Should().Be(".AspNetCore.Cookies");
-        cookies[0].Value.Should().Be("CfDJ8test");
-        cookies[0].Domain.Should().Be("localhost");
+        Assert.Single(cookies.Cast<Cookie>());
+        Assert.Equal(".AspNetCore.Cookies", cookies[0].Name);
+        Assert.Equal("CfDJ8test", cookies[0].Value);
+        Assert.Equal("localhost", cookies[0].Domain);
     }
 
     [Fact]
@@ -73,9 +73,9 @@ public class CookieFileParserSpecs : IDisposable
         var container = CookieFileParser.Parse(_tempFile);
         var cookies = container.GetAllCookies();
 
-        cookies.Should().HaveCount(1);
-        cookies[0].Secure.Should().BeTrue();
-        cookies[0].Path.Should().Be("/secure");
+        Assert.Single(cookies.Cast<Cookie>());
+        Assert.True(cookies[0].Secure);
+        Assert.Equal("/secure", cookies[0].Path);
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class CookieFileParserSpecs : IDisposable
             """);
 
         var container = CookieFileParser.Parse(_tempFile);
-        container.GetAllCookies().Should().HaveCount(1);
+        Assert.Single(container.GetAllCookies().Cast<Cookie>());
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class CookieFileParserSpecs : IDisposable
             """);
 
         var container = CookieFileParser.Parse(_tempFile);
-        container.GetAllCookies().Should().HaveCount(2);
+        Assert.Equal(2, container.GetAllCookies().Count);
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public class CookieFileParserSpecs : IDisposable
             """);
 
         var container = CookieFileParser.Parse(_tempFile);
-        container.GetAllCookies().Should().HaveCount(1);
+        Assert.Single(container.GetAllCookies().Cast<Cookie>());
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public class CookieFileParserSpecs : IDisposable
         WriteFile(string.Empty);
 
         var container = CookieFileParser.Parse(_tempFile);
-        container.GetAllCookies().Should().BeEmpty();
+        Assert.Empty(container.GetAllCookies().Cast<Cookie>());
     }
 
     [Fact]
@@ -138,8 +138,10 @@ public class CookieFileParserSpecs : IDisposable
         var container = CookieFileParser.Parse(_tempFile);
         var cookies = container.GetAllCookies();
 
-        cookies.Should().HaveCount(2);
-        cookies.Select(c => c.Name).Should().Contain(".AspNetCore.Cookies").And.Contain("XSRF-TOKEN");
+        Assert.Equal(2, cookies.Count);
+        var names = cookies.Cast<Cookie>().Select(c => c.Name).ToList();
+        Assert.Contains(".AspNetCore.Cookies", names);
+        Assert.Contains("XSRF-TOKEN", names);
     }
 
     [Fact]
@@ -153,7 +155,7 @@ public class CookieFileParserSpecs : IDisposable
         var container = CookieFileParser.Parse(_tempFile);
         var cookies = container.GetAllCookies();
 
-        cookies.Should().HaveCount(1);
-        cookies[0].Expires.Should().BeAfter(DateTime.Now);
+        Assert.Single(cookies.Cast<Cookie>());
+        Assert.True(cookies[0].Expires > DateTime.Now);
     }
 }
