@@ -1,11 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
+        <!-- Test web-server scaffolding still uses the legacy WebHostBuilder API;
+             on .NET 10 the ASP.NET deprecation analyzers (ASPDEPR004/008) are errors.
+             Suppress here rather than rewrite the harness to WebApplicationBuilder. -->
+        <NoWarn>$(NoWarn);ASPDEPR004;ASPDEPR008</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
