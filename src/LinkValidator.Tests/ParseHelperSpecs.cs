@@ -1,10 +1,9 @@
-﻿// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 // <copyright file="ParseHelperSpecs.cs">
 //      Copyright (C) 2025 - 2025 Aaron Stannard <https://aaronstannard.com/>
 // </copyright>
 // -----------------------------------------------------------------------
 
-using FluentAssertions;
 using LinkValidator.Actors;
 using LinkValidator.Util;
 
@@ -37,10 +36,10 @@ public class ParseHelperSpecs
         var uris = ParseHelpers.ParseLinks(RelativeHtml, uri);
 
         // Assert
-        uris.Should().HaveCount(3);
-        uris.Should().Contain((new AbsoluteUri(new Uri("http://example.com/about")), LinkType.Internal));
-        uris.Should().Contain((new AbsoluteUri(new Uri("http://example.com/contact")), LinkType.Internal));
-        uris.Should().Contain((new AbsoluteUri(new Uri("http://example.com/faq")), LinkType.Internal));
+        Assert.Equal(3, uris.Count);
+        Assert.Contains((new AbsoluteUri(new Uri("http://example.com/about")), LinkType.Internal), uris);
+        Assert.Contains((new AbsoluteUri(new Uri("http://example.com/contact")), LinkType.Internal), uris);
+        Assert.Contains((new AbsoluteUri(new Uri("http://example.com/faq")), LinkType.Internal), uris);
     }
 
     // create a string that contains HTML linking to a few different URLs using absolute links
@@ -68,12 +67,12 @@ public class ParseHelperSpecs
         var uris = ParseHelpers.ParseLinks(AbsoluteHtml, uri);
 
         // Assert
-        uris.Should().HaveCount(3);
+        Assert.Equal(3, uris.Count);
 
         // notice that we convert the scheme to https
-        uris.Should().Contain((new AbsoluteUri(new Uri("https://example.com/about")), LinkType.Internal));
-        uris.Should().Contain((new AbsoluteUri(new Uri("https://example.com/contact")), LinkType.Internal));
-        uris.Should().Contain((new AbsoluteUri(new Uri("https://example.com/faq")), LinkType.Internal));
+        Assert.Contains((new AbsoluteUri(new Uri("https://example.com/about")), LinkType.Internal), uris);
+        Assert.Contains((new AbsoluteUri(new Uri("https://example.com/contact")), LinkType.Internal), uris);
+        Assert.Contains((new AbsoluteUri(new Uri("https://example.com/faq")), LinkType.Internal), uris);
     }
 
     private const string MixedHtml = """
@@ -100,10 +99,10 @@ public class ParseHelperSpecs
         var uris = ParseHelpers.ParseLinks(MixedHtml, uri);
 
         // Assert
-        uris.Where(c => c.type == LinkType.Internal).Should().HaveCount(2); // don't count the FAKEURL one
-        uris.Where(c => c.type == LinkType.External).Should().HaveCount(1); // do count the FAKEURL one
-        uris.Should().Contain((new AbsoluteUri(new Uri("http://example.com/about")), LinkType.Internal));
-        uris.Should().Contain((new AbsoluteUri(new Uri("http://example.com/contact")), LinkType.Internal));
+        Assert.Equal(2, uris.Where(c => c.type == LinkType.Internal).Count()); // don't count the FAKEURL one
+        Assert.Single(uris, c => c.type == LinkType.External); // do count the FAKEURL one
+        Assert.Contains((new AbsoluteUri(new Uri("http://example.com/about")), LinkType.Internal), uris);
+        Assert.Contains((new AbsoluteUri(new Uri("http://example.com/contact")), LinkType.Internal), uris);
     }
 
     public const string TweetShareLink = """
@@ -795,8 +794,8 @@ public class ParseHelperSpecs
         var uris = ParseHelpers.ParseLinks(TweetShareLink, uri);
 
         // Assert
-        uris.Where(c => c.type == LinkType.Internal).Should().HaveCount(22);
-        uris.Where(c => c.type == LinkType.External).Should().HaveCount(15);
+        Assert.Equal(22, uris.Where(c => c.type == LinkType.Internal).Count());
+        Assert.Equal(15, uris.Where(c => c.type == LinkType.External).Count());
     }
 
     private const string LinkFragmentsHtml = """
@@ -823,8 +822,8 @@ public class ParseHelperSpecs
         var uris = ParseHelpers.ParseLinks(LinkFragmentsHtml, uri);
 
         // Assert
-        uris.Should().HaveCount(2);
-        uris.Should().Contain((new AbsoluteUri(new Uri("http://example.com/about")), LinkType.Internal));
-        uris.Should().Contain((new AbsoluteUri(new Uri("http://example.com/contact")), LinkType.Internal));
+        Assert.Equal(2, uris.Count);
+        Assert.Contains((new AbsoluteUri(new Uri("http://example.com/about")), LinkType.Internal), uris);
+        Assert.Contains((new AbsoluteUri(new Uri("http://example.com/contact")), LinkType.Internal), uris);
     }
 }

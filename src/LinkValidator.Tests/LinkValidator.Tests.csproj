@@ -15,7 +15,6 @@
     <ItemGroup>
         <PackageReference Include="Akka.TestKit.Xunit2" />
         <PackageReference Include="coverlet.collector"/>
-        <PackageReference Include="FluentAssertions"/>
         <PackageReference Include="Microsoft.AspNetCore.StaticFiles" />
         <PackageReference Include="Microsoft.AspNetCore.TestHost" />
         <PackageReference Include="Microsoft.NET.Test.Sdk"/>
