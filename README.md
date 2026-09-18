@@ -38,10 +38,10 @@ link-validator --url https://example.com --output new-sitemap.md --diff old-site
 
 ### Prerequisites
 
-**Required:** [.NET 9 Runtime](https://dotnet.microsoft.com/download/dotnet/9.0) must be installed on your system to run LinkValidator.
+**Required:** [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) must be installed on your system to run LinkValidator.
 
-- **Windows:** Download the [.NET 9 Runtime](https://dotnet.microsoft.com/download/dotnet/9.0/runtime)
-- **Linux/macOS:** Install via package manager or download from [Microsoft](https://dotnet.microsoft.com/download/dotnet/9.0)
+- **Windows:** Download the [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0/runtime)
+- **Linux/macOS:** Install via package manager or download from [Microsoft](https://dotnet.microsoft.com/download/dotnet/10.0)
 
 ### Option 1: Install Script (Recommended)
 
@@ -88,11 +88,11 @@ Download the appropriate binary from the [latest release](https://github.com/Aar
 
 Extract and place the binary in your PATH.
 
-**Note:** These binaries require the .NET 9 Runtime to be installed (see Prerequisites above).
+**Note:** These binaries require the .NET 10 Runtime to be installed (see Prerequisites above).
 
 ### Option 3: Build from Source
 
-**Prerequisites:** [.NET 9 SDK](https://dotnet.microsoft.com/download)
+**Prerequisites:** [.NET 10 SDK](https://dotnet.microsoft.com/download)
 
 ```bash
 git clone https://github.com/Aaronontheweb/link-validator.git
@@ -376,7 +376,7 @@ Contributions are welcome! Please see our [contributing guidelines](CONTRIBUTING
 git clone https://github.com/Aaronontheweb/link-validator.git
 cd link-validator
 
-# Install .NET 9 SDK
+# Install .NET 10 SDK
 # Build and test
 dotnet build
 dotnet test
