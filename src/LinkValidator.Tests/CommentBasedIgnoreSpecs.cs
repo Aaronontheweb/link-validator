@@ -4,10 +4,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using FluentAssertions;
 using LinkValidator.Actors;
 using LinkValidator.Util;
-using Xunit;
 
 namespace LinkValidator.Tests;
 
@@ -30,10 +28,10 @@ public class CommentBasedIgnoreSpecs
 
         var links = ParseHelpers.ParseLinks(html, _baseUrl);
 
-        links.Should().HaveCount(2);
-        links.Should().Contain(x => x.uri.Value.Host == "www.google.com");
-        links.Should().Contain(x => x.uri.Value.Host == "www.github.com");
-        links.Should().NotContain(x => x.uri.Value.Host == "localhost");
+        Assert.Equal(2, links.Count);
+        Assert.Contains(links, x => x.uri.Value.Host == "www.google.com");
+        Assert.Contains(links, x => x.uri.Value.Host == "www.github.com");
+        Assert.DoesNotContain(links, x => x.uri.Value.Host == "localhost");
     }
 
     [Fact]
@@ -58,10 +56,10 @@ public class CommentBasedIgnoreSpecs
 
         var links = ParseHelpers.ParseLinks(html, _baseUrl);
 
-        links.Should().HaveCount(2);
-        links.Should().Contain(x => x.uri.Value.Host == "www.google.com");
-        links.Should().Contain(x => x.uri.Value.Host == "www.github.com");
-        links.Should().NotContain(x => x.uri.Value.Host == "localhost");
+        Assert.Equal(2, links.Count);
+        Assert.Contains(links, x => x.uri.Value.Host == "www.google.com");
+        Assert.Contains(links, x => x.uri.Value.Host == "www.github.com");
+        Assert.DoesNotContain(links, x => x.uri.Value.Host == "localhost");
     }
 
     [Fact]
@@ -84,9 +82,9 @@ public class CommentBasedIgnoreSpecs
 
         var links = ParseHelpers.ParseLinks(html, _baseUrl);
 
-        links.Should().HaveCount(1);
-        links.Should().Contain(x => x.uri.Value.Host == "www.google.com");
-        links.Should().NotContain(x => x.uri.Value.Host == "localhost");
+        Assert.Single(links);
+        Assert.Contains(links, x => x.uri.Value.Host == "www.google.com");
+        Assert.DoesNotContain(links, x => x.uri.Value.Host == "localhost");
     }
 
     [Fact]
@@ -104,10 +102,10 @@ public class CommentBasedIgnoreSpecs
 
         var links = ParseHelpers.ParseLinks(html, _baseUrl);
 
-        links.Should().HaveCount(2);
-        links.Should().Contain(x => x.uri.Value.ToString().Contains("localhost:9090"));
-        links.Should().Contain(x => x.uri.Value.Host == "www.google.com");
-        links.Should().NotContain(x => x.uri.Value.ToString().Contains("localhost:3000"));
+        Assert.Equal(2, links.Count);
+        Assert.Contains(links, x => x.uri.Value.ToString().Contains("localhost:9090"));
+        Assert.Contains(links, x => x.uri.Value.Host == "www.google.com");
+        Assert.DoesNotContain(links, x => x.uri.Value.ToString().Contains("localhost:3000"));
     }
 
     [Fact]
@@ -130,11 +128,11 @@ public class CommentBasedIgnoreSpecs
 
         var links = ParseHelpers.ParseLinks(html, _baseUrl);
 
-        links.Should().HaveCount(3);
-        links.Should().Contain(x => x.uri.Value.Host == "www.google.com");
-        links.Should().Contain(x => x.uri.Value.Host == "www.github.com");
-        links.Should().Contain(x => x.uri.Value.Host == "www.stackoverflow.com");
-        links.Should().NotContain(x => x.uri.Value.Host == "localhost");
+        Assert.Equal(3, links.Count);
+        Assert.Contains(links, x => x.uri.Value.Host == "www.google.com");
+        Assert.Contains(links, x => x.uri.Value.Host == "www.github.com");
+        Assert.Contains(links, x => x.uri.Value.Host == "www.stackoverflow.com");
+        Assert.DoesNotContain(links, x => x.uri.Value.Host == "localhost");
     }
 
     [Fact]
@@ -154,8 +152,8 @@ public class CommentBasedIgnoreSpecs
 
         var links = ParseHelpers.ParseLinks(html, _baseUrl);
 
-        links.Should().HaveCount(1);
-        links.Should().Contain(x => x.uri.Value.Host == "www.google.com");
-        links.Should().NotContain(x => x.uri.Value.Host == "localhost");
+        Assert.Single(links);
+        Assert.Contains(links, x => x.uri.Value.Host == "www.google.com");
+        Assert.DoesNotContain(links, x => x.uri.Value.Host == "localhost");
     }
 }
