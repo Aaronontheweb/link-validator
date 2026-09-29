@@ -6,7 +6,7 @@
         <PackageVersion Include="Akka" Version="1.5.64"/>
         <PackageVersion Include="Grynwald.MarkdownGenerator" Version="3.0.106"/>
         <PackageVersion Include="HtmlAgilityPack" Version="1.13.0"/>
-        <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1"/>
+        <PackageVersion Include="System.CommandLine" Version="2.0.12"/>
     </ItemGroup>
     <ItemGroup Label="Test">
         <PackageVersion Include="Akka.TestKit" Version="1.5.39"/>
