@@ -44,20 +44,14 @@ if ($IsWindows -or $env:OS -eq "Windows_NT") {
     $ArchiveExt = ".zip"
     $DefaultInstallPath = Join-Path $env:USERPROFILE ".linkvalidator"
 } elseif ($IsLinux) {
-    $Platform = "linux"
-    $Architecture = "x64"
-    $Extension = ""
-    $ArchiveExt = ".tar.gz"
-    $DefaultInstallPath = Join-Path $env:HOME ".linkvalidator"
-} elseif ($IsMacOS) {
-    # Detect Apple Silicon vs Intel
+    # Detect ARM64 vs x64 on Linux
     $UnameM = uname -m
-    if ($UnameM -eq "arm64") {
+    if ($UnameM -eq "aarch64" -or $UnameM -eq "arm64") {
         $Architecture = "arm64"
     } else {
         $Architecture = "x64"
     }
-    $Platform = "macos"
+    $Platform = "linux"
     $Extension = ""
     $ArchiveExt = ".tar.gz"
     $DefaultInstallPath = Join-Path $env:HOME ".linkvalidator"
@@ -74,14 +68,11 @@ Write-Host "LinkValidator Installer" -ForegroundColor Green
 Write-Host "Platform: $Platform-$Architecture" -ForegroundColor Cyan
 Write-Host "Install Path: $InstallPath" -ForegroundColor Cyan
 
-# Check for .NET runtime
+# Check for .NET runtime (AOT binaries are self-contained, so this is informational)
 try {
     $null = & dotnet --version 2>$null
 } catch {
-    Write-Host "`nWARNING: .NET runtime not detected!" -ForegroundColor Yellow
-    Write-Host "LinkValidator requires .NET 9 Runtime to run." -ForegroundColor Yellow
-    Write-Host "Download from: https://dotnet.microsoft.com/download/dotnet/9.0" -ForegroundColor Yellow
-    Write-Host "Continuing with installation...`n" -ForegroundColor Cyan
+    Write-Host "`nNative AOT build — no .NET runtime required." -ForegroundColor Cyan
 }
 
 # Get latest release info or specific version

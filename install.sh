@@ -64,7 +64,6 @@ detect_platform() {
     # Detect OS
     case "$(uname -s)" in
         Linux*)     os="linux" ;;
-        Darwin*)    os="macos" ;;
         *)          
             log_error "Unsupported operating system: $(uname -s)"
             exit 1
@@ -74,16 +73,10 @@ detect_platform() {
     # Detect architecture
     case "$(uname -m)" in
         x86_64|amd64)   arch="x64" ;;
-        arm64|aarch64)  
-            if [[ "$os" == "macos" ]]; then
-                arch="arm64"
-            else
-                arch="x64"  # Fall back to x64 for Linux ARM
-            fi
-            ;;
+        arm64|aarch64)  arch="arm64" ;;
         *)
-            log_warning "Unsupported architecture $(uname -m), falling back to x64"
-            arch="x64"
+            log_error "Unsupported architecture $(uname -m)"
+            exit 1
             ;;
     esac
     
@@ -266,11 +259,7 @@ main() {
     
     # Check for .NET runtime
     if ! command -v dotnet >/dev/null 2>&1; then
-        log_warning "WARNING: .NET runtime not detected!"
-        log_warning "LinkValidator requires .NET 9 Runtime to run."
-        log_warning "Download from: https://dotnet.microsoft.com/download/dotnet/9.0"
-        log_info "Continuing with installation..."
-        echo ""
+        log_info "Native AOT build — no .NET runtime required."
     fi
     
     # Check dependencies

@@ -10,24 +10,23 @@ env:
 
 jobs:
   build:
-    name: Build Release Binaries
-    runs-on: ubuntu-latest
+    name: Build ${{ matrix.rid }} Native AOT Binary
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        runtime: [win-x64, linux-x64, osx-x64, osx-arm64]
         include:
-          - runtime: win-x64
-            extension: '.exe'
-            archive-name: 'link-validator-windows-x64'
-          - runtime: linux-x64
-            extension: ''
+          - os: ubuntu-24.04
+            rid: linux-x64
             archive-name: 'link-validator-linux-x64'
-          - runtime: osx-x64
-            extension: ''
-            archive-name: 'link-validator-macos-x64'
-          - runtime: osx-arm64
-            extension: ''
-            archive-name: 'link-validator-macos-arm64'
+            archive-ext: tar.gz
+          - os: ubuntu-24.04-arm
+            rid: linux-arm64
+            archive-name: 'link-validator-linux-arm64'
+            archive-ext: tar.gz
+          - os: windows-latest
+            rid: win-x64
+            archive-name: 'link-validator-windows-x64'
+            archive-ext: zip
 
     steps:
     - name: Checkout
@@ -46,23 +45,23 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
 
-    - name: Build and publish
+    - name: Publish Native AOT binary
+      shell: bash
       run: |
         dotnet publish ${{ env.PROJECT_PATH }} \
           -c Release \
-          -r ${{ matrix.runtime }} \
-          --self-contained false \
-          -p:PublishAot=false \
-          -p:PublishTrimmed=false \
-          -o publish/${{ matrix.runtime }}
+          -r ${{ matrix.rid }} \
+          -p:PublishAot=true \
+          -o publish/${{ matrix.rid }}
 
-    - name: Create archive
+    - name: Package archive
+      shell: bash
       run: |
-        cd publish/${{ matrix.runtime }}
-        if [ "${{ matrix.runtime }}" == "win-x64" ]; then
-          zip -r ../../${{ matrix.archive-name }}.zip link-validator${{ matrix.extension }}
+        cd publish/${{ matrix.rid }}
+        if [ "${{ matrix.rid }}" == "win-x64" ]; then
+          zip -r ../../${{ matrix.archive-name }}.zip link-validator.exe
         else
-          tar -czf ../../${{ matrix.archive-name }}.tar.gz link-validator${{ matrix.extension }}
+          tar -czf ../../${{ matrix.archive-name }}.tar.gz link-validator
         fi
 
     - name: Upload artifact
