@@ -67,6 +67,8 @@ jobs:
             --configuration Release \
             --runtime linux-x64 \
             --self-contained false \
+            -p:PublishAot=false \
+            -p:PublishTrimmed=false \
             --output ./publish
 
       - name: "Test binary functionality"
@@ -88,3 +90,49 @@ jobs:
           fi
           
           echo "✓ Binary validation passed"
+
+  validate-aot:
+    name: Validate Native AOT Compile
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: "Install .NET SDK"
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1
+        with:
+          global-json-file: "./global.json"
+
+      - name: "Update version info from release notes"
+        run: pwsh ./build.ps1
+
+      - name: "Publish Native AOT binary"
+        run: |
+          dotnet publish src/LinkValidator \
+            --configuration Release \
+            --runtime linux-x64 \
+            --output ./publish-aot
+
+      - name: "Test Native AOT binary"
+        run: |
+          chmod +x ./publish-aot/link-validator
+          
+          echo "Testing --version flag..."
+          ./publish-aot/link-validator --version
+          
+          echo "Testing --help flag..."
+          ./publish-aot/link-validator --help
+          
+          echo "Testing invalid URL handling..."
+          if ./publish-aot/link-validator --url "not-a-valid-url" 2>/dev/null; then
+            echo "ERROR: Should have failed with invalid URL"
+            exit 1
+          else
+            echo "✓ Correctly rejected invalid URL"
+          fi
+          
+          echo "✓ Native AOT validation passed"

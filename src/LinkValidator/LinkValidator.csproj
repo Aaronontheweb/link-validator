@@ -7,8 +7,11 @@
         <Nullable>enable</Nullable>
         <RollForward>LatestMajor</RollForward>
         <PublishSingleFile>true</PublishSingleFile>
-        <SelfContained>false</SelfContained>
-        <PublishTrimmed>false</PublishTrimmed>
+        <PublishAot>true</PublishAot>
+        <StripSymbols>true</StripSymbols>
+        <NativeDebugSymbols>false</NativeDebugSymbols>
+        <DebugSymbols>false</DebugSymbols>
+        <DebugType>None</DebugType>
         <RuntimeIdentifiers>win-x64;linux-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
         <AssemblyName>link-validator</AssemblyName>
     </PropertyGroup>
