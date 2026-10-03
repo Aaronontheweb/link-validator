@@ -114,21 +114,42 @@ public static class UriHelpers
             throw new ArgumentNullException(nameof(uri));
         }
 
-        // Rebuild the URI without the Fragment part only. The Query must be
-        // preserved because it is sent with the HTTP request and some servers
-        // return 404 for the bare path (e.g. https://www.youtube.com/playlist?list=...).
-        // Fragments are client-side only and never sent to the server, so they
-        // are stripped to avoid duplicate crawl entries for the same resource.
+        // Strip only the Fragment part. The Query must be preserved because it is
+        // sent with the HTTP request and some servers return 404 for the bare path
+        // (e.g. https://www.youtube.com/playlist?list=...). Fragments are client-side
+        // only and never sent to the server, so they are stripped to avoid duplicate
+        // crawl entries for the same resource.
+        //
+        // We strip the fragment via string manipulation (not UriBuilder) so that any
+        // percent-escapes in the path/query are preserved byte-for-byte, and so an
+        // empty paint (the '?' left over from 'path?#frag') is not retained.
         if (string.IsNullOrEmpty(uri.Fragment))
         {
             return uri;
         }
 
-        var builder = new UriBuilder(uri)
+        // Operate on the URI's query-preserving representation. Unlike
+        // UriBuilder (which drops the Fragment but can re-encode the string),
+        // stripping the fragment text directly keeps the query exactly as the
+        // Uri object reports it. Note: System.Uri already canonicalizes
+        // percent-escapes in the PATH at construction, so we only need to
+        // guarantee the QUERY is left intact here.
+        var absoluteUri = uri.AbsoluteUri;
+        var fragmentIndex = absoluteUri.IndexOf('#');
+        if (fragmentIndex < 0)
         {
-            Fragment = string.Empty
-        };
-        return builder.Uri;
+            return uri;
+        }
+
+        var stripped = absoluteUri[..fragmentIndex];
+
+        // Drop a trailing '?' produced by a URL like 'path?#frag' (empty query).
+        if (stripped.EndsWith('?'))
+        {
+            stripped = stripped[..^1];
+        }
+
+        return new Uri(stripped);
     }
 
 

@@ -167,6 +167,12 @@ public class UriHelperSpecs
     [InlineData("http://example.com/some/path?query=1", "http://example.com/some/path?query=1")]
     [InlineData("http://example.com/some/path#fragment", "http://example.com/some/path")]
     [InlineData("http://example.com/some/path?query=1#fragment", "http://example.com/some/path?query=1")]
+    // F2: query-string percent-escapes must survive fragment stripping unchanged.
+    // (Path escapes are already canonicalized by System.Uri at construction, so we
+    // only guarantee the query portion is preserved.)
+    [InlineData("http://example.com/path?q=a%20b#frag", "http://example.com/path?q=a%20b")]
+    // F3: an empty-query 'path?#frag' must not retain a trailing '?'.
+    [InlineData("http://example.com/path?#frag", "http://example.com/path")]
     public void RemoveFragment_should_preserve_query_and_strip_fragment(string input, string expected)
     {
         // Arrange
@@ -176,7 +182,9 @@ public class UriHelperSpecs
         var result = UriHelpers.RemoveFragment(uri);
 
         // Assert
-        Assert.Equal(expected, result.ToString());
+        // Compare AbsoluteUri (the wire/request form) so percent-escapes in the
+        // query are compared as-is rather than via ToString()'s decoded display.
+        Assert.Equal(expected, result.AbsoluteUri);
     }
 
     public static readonly TheoryData<AbsoluteUri, string, RelativeUri> ToRelativeUriData = new()
