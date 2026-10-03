@@ -121,24 +121,22 @@ jobs:
       id: version
       run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-    - name: Read release notes
-      id: release_notes
+    - name: Extract latest release notes
+      shell: pwsh
       run: |
-        if [ -f "RELEASE_NOTES.md" ]; then
-          {
-            echo "notes<<RELEASE_NOTES_DELIMITER"
-            cat RELEASE_NOTES.md
-            echo "RELEASE_NOTES_DELIMITER"
-          } >> $GITHUB_OUTPUT
-        else
-          echo "notes=Release ${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
-        fi
+        $content = Get-Content RELEASE_NOTES.md -Raw
+        # Match from the first #### heading to just before the second one
+        if ($content -match '(?s)(####.+?)(?=\n####|\z)') {
+          $Matches[1].Trim() | Set-Content RELEASE_NOTES_LATEST.md
+        } else {
+          $content | Set-Content RELEASE_NOTES_LATEST.md
+        }
 
     - name: Create Release
       uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
       with:
         name: ${{ steps.version.outputs.version }}
-        body: ${{ steps.release_notes.outputs.notes }}
+        body_path: RELEASE_NOTES_LATEST.md
         files: |
           artifacts/**/*.zip
           artifacts/**/*.tar.gz
