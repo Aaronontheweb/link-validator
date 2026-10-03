@@ -1,3 +1,11 @@
+#### 0.5.1 October 3rd 2026 ####
+
+**Bug Fixes:**
+- **Fixed false-positive 404s on URLs with query strings** - link-validator was stripping query strings from every URL before crawling, so valid query-dependent links (e.g., YouTube playlist URLs like `https://www.youtube.com/playlist?list=...`) were reported as broken (`NotFound`/404) and failed `--strict` runs ([#190](https://github.com/Aaronontheweb/link-validator/issues/190), [#191](https://github.com/Aaronontheweb/link-validator/pull/191))
+  - Queries are now preserved so the real URL is evaluated
+  - Only client-side fragments (which are never sent to the server) are stripped
+  - Fragment stripping now preserves percent-escapes and drops empty trailing query artifacts
+
 #### 0.5.0 October 3rd 2026 ####
 
 **New Features:**
