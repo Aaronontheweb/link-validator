@@ -24,7 +24,7 @@ public class CrawlReportSpecs
             ImmutableList<AbsoluteUri>.Empty);
 
     [Fact]
-    public void HasInternalCrawlErrors_ShouldBeFalse_WhenAllInternalLinksOk()
+    public void HasStrictCrawlErrors_ShouldBeFalse_WhenAllLinksAreOk()
     {
         var report = new CrawlReport(
             Root,
@@ -33,11 +33,11 @@ public class CrawlReportSpecs
                 .Add("/page1.html", Ok("/page1.html")),
             ImmutableSortedDictionary<string, CrawlRecord>.Empty);
 
-        Assert.False(report.HasInternalCrawlErrors);
+        Assert.False(report.HasStrictCrawlErrors);
     }
 
     [Fact]
-    public void HasInternalCrawlErrors_ShouldBeTrue_WhenAnInternalLinkIsBroken()
+    public void HasStrictCrawlErrors_ShouldBeTrue_WhenAnInternalLinkIsBroken()
     {
         var report = new CrawlReport(
             Root,
@@ -46,13 +46,16 @@ public class CrawlReportSpecs
                 .Add("/page2.html", NotFound("/page2.html")),
             ImmutableSortedDictionary<string, CrawlRecord>.Empty);
 
-        Assert.True(report.HasInternalCrawlErrors);
+        Assert.True(report.HasStrictCrawlErrors);
     }
 
-    [Fact]
-    public void HasInternalCrawlErrors_ShouldIgnoreExternalLinkFailures()
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.RequestTimeout)]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.BadGateway)]
+    public void HasStrictCrawlErrors_ShouldIgnoreIndeterminateExternalFailures(HttpStatusCode statusCode)
     {
-        // External link failures must not fail a --strict run (e.g. X/Twitter returns 520 to crawlers).
         var report = new CrawlReport(
             Root,
             ImmutableSortedDictionary<string, CrawlRecord>.Empty
@@ -60,8 +63,25 @@ public class CrawlReportSpecs
             ImmutableSortedDictionary<string, CrawlRecord>.Empty
                 .Add("https://twitter.com/someprofile",
                     new CrawlRecord(new AbsoluteUri(new Uri("https://twitter.com/someprofile")),
-                        HttpStatusCode.BadGateway, ImmutableList<AbsoluteUri>.Empty)));
+                        statusCode, ImmutableList<AbsoluteUri>.Empty)));
 
-        Assert.False(report.HasInternalCrawlErrors);
+        Assert.False(report.HasStrictCrawlErrors);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.Gone)]
+    public void HasStrictCrawlErrors_ShouldBeTrue_WhenAnExternalLinkIsPermanentlyMissing(HttpStatusCode statusCode)
+    {
+        var report = new CrawlReport(
+            Root,
+            ImmutableSortedDictionary<string, CrawlRecord>.Empty
+                .Add("/", Ok("/")),
+            ImmutableSortedDictionary<string, CrawlRecord>.Empty
+                .Add("https://example.com/missing",
+                    new CrawlRecord(new AbsoluteUri(new Uri("https://example.com/missing")),
+                        statusCode, ImmutableList<AbsoluteUri>.Empty)));
+
+        Assert.True(report.HasStrictCrawlErrors);
     }
 }

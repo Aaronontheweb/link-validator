@@ -34,7 +34,7 @@ class Program
         var outputOption = new Option<string?>("--output", "Optional output file path for the sitemap");
         var diffOption = new Option<string?>("--diff", "Previous output file to compare against");
         var strictOption = new Option<bool>("--strict", () => false,
-            "Return error code if pages are missing or returning 400+ status codes");
+            "Return error code for internal 400+ responses or external 404/410 responses");
         var maxRetriesOption = new Option<int>("--max-external-retries", GetMaxExternalRetries,
             "Maximum retry attempts for external URLs returning 429 (default: 3)");
         var retryDelayOption = new Option<int>("--retry-delay-seconds", GetRetryDelaySeconds,
@@ -99,11 +99,8 @@ class Program
                 Console.WriteLine(markdown);
             }
 
-            // --strict fails the run whenever the crawl found broken internal pages (missing or 400+),
-            // independent of whether --diff is supplied. This is what the option's help text promises.
-            // We defer the exit until after the --diff block below so the two strict paths don't
-            // swallow each other's diagnostic output.
-            var shouldFail = strict && results.HasInternalCrawlErrors;
+            // Defer the exit until after the --diff block so both strict paths emit their diagnostics.
+            var shouldFail = strict && results.HasStrictCrawlErrors;
 
             if (!string.IsNullOrEmpty(diff))
             {
