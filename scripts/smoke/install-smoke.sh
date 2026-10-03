@@ -98,16 +98,19 @@ check_install() {
     local description="$1" os="$2" machine="$3" expected_rid="$4"
     local install_dir="$WORK/install-$expected_rid"
     local output rc
-    local -a version_args=()
-    if [[ $# -eq 5 ]]; then
-        version_args=(--version "$5")
-    fi
 
     set +e
-    output=$(HOME="$WORK/home" PATH="$SHIM:$PATH" \
-        SMOKE_UNAME_S="$os" SMOKE_UNAME_M="$machine" \
-        LINK_VALIDATOR_GITHUB_API_URL="$BASE_URL" \
-        bash "$INSTALL_SH" --dir "$install_dir" --skip-path "${version_args[@]}" 2>&1)
+    if [[ $# -eq 5 ]]; then
+        output=$(HOME="$WORK/home" PATH="$SHIM:$PATH" \
+            SMOKE_UNAME_S="$os" SMOKE_UNAME_M="$machine" \
+            LINK_VALIDATOR_GITHUB_API_URL="$BASE_URL" \
+            bash "$INSTALL_SH" --dir "$install_dir" --skip-path --version "$5" 2>&1)
+    else
+        output=$(HOME="$WORK/home" PATH="$SHIM:$PATH" \
+            SMOKE_UNAME_S="$os" SMOKE_UNAME_M="$machine" \
+            LINK_VALIDATOR_GITHUB_API_URL="$BASE_URL" \
+            bash "$INSTALL_SH" --dir "$install_dir" --skip-path 2>&1)
+    fi
     rc=$?
     set -e
 

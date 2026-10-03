@@ -149,7 +149,7 @@ try {
             chmod +x $DestPath
         }
         
-        Write-Host "✓ LinkValidator installed successfully!" -ForegroundColor Green
+        Write-Host "[OK] LinkValidator installed successfully!" -ForegroundColor Green
         Write-Host "Binary location: $DestPath" -ForegroundColor Cyan
         
         # Test installation
@@ -165,9 +165,9 @@ try {
                 $CurrentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
                 if ($CurrentPath -notlike "*$InstallPath*") {
                     [Environment]::SetEnvironmentVariable("PATH", "$CurrentPath;$InstallPath", "User")
-                    Write-Host "✓ Added to user PATH. Restart your terminal to use 'link-validator' command." -ForegroundColor Green
+                    Write-Host "[OK] Added to user PATH. Restart your terminal to use 'link-validator' command." -ForegroundColor Green
                 } else {
-                    Write-Host "✓ Already in PATH" -ForegroundColor Green
+                    Write-Host "[OK] Already in PATH" -ForegroundColor Green
                 }
             } else {
                 # Unix-like: Add to shell profile
@@ -179,9 +179,9 @@ try {
                 
                 if (-not (Test-Path $ShellProfile) -or -not (Get-Content $ShellProfile -ErrorAction SilentlyContinue | Select-String -Pattern ([regex]::Escape($InstallPath)))) {
                     Add-Content -Path $ShellProfile -Value $PathLine
-                    Write-Host "✓ Added to $ShellProfile. Run 'source $ShellProfile' or restart your terminal." -ForegroundColor Green
+                    Write-Host "[OK] Added to $ShellProfile. Run 'source $ShellProfile' or restart your terminal." -ForegroundColor Green
                 } else {
-                    Write-Host "✓ Already in shell profile" -ForegroundColor Green
+                    Write-Host "[OK] Already in shell profile" -ForegroundColor Green
                 }
             }
         } else {
