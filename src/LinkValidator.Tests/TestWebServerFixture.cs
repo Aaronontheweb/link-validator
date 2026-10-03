@@ -48,7 +48,7 @@ public class TestWebServerFixture : IAsyncDisposable
                 {
                     app.Use(async (context, next) =>
                     {
-                        Logger?.Invoke($"Request: {context.Request.Method} {context.Request.Path}");
+                        Logger?.Invoke($"Request: {context.Request.Method} {context.Request.Path}{context.Request.QueryString}");
                         await next();
                         Logger?.Invoke($"Response: {context.Response.StatusCode} for {context.Request.Path}");
                     });

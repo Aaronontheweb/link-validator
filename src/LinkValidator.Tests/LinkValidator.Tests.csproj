@@ -49,6 +49,14 @@
       <Content Include="pages\page1.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
+      <None Remove="pages-query\index.html" />
+      <Content Include="pages-query\index.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="pages-query\target.html" />
+      <Content Include="pages-query\target.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>
