@@ -101,10 +101,9 @@ class Program
 
             // --strict fails the run whenever the crawl found broken internal pages (missing or 400+),
             // independent of whether --diff is supplied. This is what the option's help text promises.
-            if (strict && results.HasInternalCrawlErrors)
-            {
-                Environment.Exit(1);
-            }
+            // We defer the exit until after the --diff block below so the two strict paths don't
+            // swallow each other's diagnostic output.
+            var shouldFail = strict && results.HasInternalCrawlErrors;
 
             if (!string.IsNullOrEmpty(diff))
             {
@@ -117,8 +116,13 @@ class Program
 
                 if (strict && hasErrors)
                 {
-                    Environment.Exit(1);
+                    shouldFail = true;
                 }
+            }
+
+            if (shouldFail)
+            {
+                Environment.Exit(1);
             }
         }, urlOption, outputOption, diffOption, strictOption, maxRetriesOption, retryDelayOption, cookieFileOption);
 
