@@ -12,7 +12,7 @@ A fast, reliable CLI tool for crawling websites and validating both internal and
 - **Smart External Link Handling** - Respects rate limits with configurable retry policies for 429 responses
 - **Comprehensive Reporting** - Generate detailed markdown reports of all discovered links and their status
 - **CI/CD Ready** - Perfect for automated testing in build pipelines
-- **Cross-Platform** - Single-file binaries for Windows, Linux, and macOS (Intel + Apple Silicon)
+- **Cross-Platform** - Native binaries for Windows x64, Linux x64/ARM64, and Apple Silicon macOS
 - **Diff Support** - Compare current crawl results against previous runs to detect changes
 - **Authenticated Crawling** - Supply a cookie file to validate links behind login pages
 - **Flexible Configuration** - CLI flags and environment variables for easy customization
@@ -36,12 +36,7 @@ link-validator --url https://example.com --output new-sitemap.md --diff old-site
 
 ## 📦 Installation
 
-### Prerequisites
-
-**Required:** [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) must be installed on your system to run LinkValidator.
-
-- **Windows:** Download the [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0/runtime)
-- **Linux/macOS:** Install via package manager or download from [Microsoft](https://dotnet.microsoft.com/download/dotnet/10.0)
+Released binaries are self-contained Native AOT executables; no .NET runtime is required.
 
 ### Option 1: Install Script (Recommended)
 
@@ -50,7 +45,7 @@ link-validator --url https://example.com --output new-sitemap.md --diff old-site
 irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.ps1 | iex
 ```
 
-**Linux/macOS (Bash):**
+**Linux or Apple Silicon macOS (Bash):**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.sh | bash
 ```
@@ -61,13 +56,13 @@ curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/in
 **Windows custom options:**
 ```powershell
 # Install to custom location  
-irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.ps1 | iex -ArgumentList "-InstallPath", "C:\tools\linkvalidator"
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.ps1))) -InstallPath "C:\tools\linkvalidator"
 
 # Install without adding to PATH
-irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.ps1 | iex -ArgumentList "-SkipPath"
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.ps1))) -SkipPath
 ```
 
-**Linux/macOS custom options:**
+**Linux or Apple Silicon macOS custom options:**
 ```bash
 # Install to custom location
 curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/install.sh | bash -s -- --dir ~/.local/bin
@@ -82,13 +77,11 @@ curl -fsSL https://raw.githubusercontent.com/Aaronontheweb/link-validator/dev/in
 Download the appropriate binary from the [latest release](https://github.com/Aaronontheweb/link-validator/releases/latest):
 
 - **Windows x64:** `link-validator-windows-x64.zip`
-- **Linux x64:** `link-validator-linux-x64.tar.gz` 
-- **macOS x64:** `link-validator-macos-x64.tar.gz`
-- **macOS ARM64:** `link-validator-macos-arm64.tar.gz`
+- **Linux x64:** `link-validator-linux-x64.tar.gz`
+- **Linux ARM64:** `link-validator-linux-arm64.tar.gz`
+- **macOS ARM64 (Apple Silicon):** `link-validator-macos-arm64.tar.gz`
 
 Extract and place the binary in your PATH.
-
-**Note:** These binaries require the .NET 10 Runtime to be installed (see Prerequisites above).
 
 ### Option 3: Build from Source
 
@@ -101,9 +94,9 @@ cd link-validator
 # Build and run locally
 dotnet run --project src/LinkValidator -- --url https://example.com
 
-# Or publish as single-file binary
-dotnet publish src/LinkValidator -c Release -r <RUNTIME> --self-contained false
-# Where <RUNTIME> is: win-x64, linux-x64, osx-x64, or osx-arm64
+# Or publish as a self-contained Native AOT binary
+dotnet publish src/LinkValidator -c Release -r <RUNTIME> -p:PublishAot=true
+# Where <RUNTIME> is: win-x64, linux-x64, linux-arm64, or osx-arm64
 ```
 
 ## 🏗️ CI/CD Integration

@@ -92,8 +92,25 @@ jobs:
           echo "✓ Binary validation passed"
 
   validate-aot:
-    name: Validate Native AOT Compile
-    runs-on: ubuntu-latest
+    name: Validate Native AOT-${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            rid: linux-x64
+            binary: link-validator
+          - os: ubuntu-24.04-arm
+            rid: linux-arm64
+            binary: link-validator
+          - os: windows-latest
+            rid: win-x64
+            binary: link-validator.exe
+          - os: macos-15
+            rid: osx-arm64
+            binary: link-validator
 
     steps:
       - name: "Checkout"
@@ -111,24 +128,26 @@ jobs:
         run: pwsh ./build.ps1
 
       - name: "Publish Native AOT binary"
+        shell: bash
         run: |
           dotnet publish src/LinkValidator \
             --configuration Release \
-            --runtime linux-x64 \
+            --runtime ${{ matrix.rid }} \
             --output ./publish-aot
 
       - name: "Test Native AOT binary"
+        shell: bash
         run: |
-          chmod +x ./publish-aot/link-validator
+          chmod +x ./publish-aot/${{ matrix.binary }}
           
           echo "Testing --version flag..."
-          ./publish-aot/link-validator --version
+          ./publish-aot/${{ matrix.binary }} --version
           
           echo "Testing --help flag..."
-          ./publish-aot/link-validator --help
+          ./publish-aot/${{ matrix.binary }} --help
           
           echo "Testing invalid URL handling..."
-          if ./publish-aot/link-validator --url "not-a-valid-url" 2>/dev/null; then
+          if ./publish-aot/${{ matrix.binary }} --url "not-a-valid-url" 2>/dev/null; then
             echo "ERROR: Should have failed with invalid URL"
             exit 1
           else
@@ -136,3 +155,34 @@ jobs:
           fi
           
           echo "✓ Native AOT validation passed"
+
+  install-smoke:
+    name: Install Script Smoke-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15, windows-latest]
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 1
+
+      - name: "install.sh smoke test"
+        if: runner.os != 'Windows'
+        shell: bash
+        run: bash scripts/smoke/install-smoke.sh
+
+      - name: "install.ps1 smoke test"
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/smoke/install-smoke.ps1
+
+      - name: "install.ps1 Windows PowerShell 5.1 smoke test"
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./scripts/smoke/install-smoke.ps1

@@ -12,7 +12,7 @@
         <NativeDebugSymbols>false</NativeDebugSymbols>
         <DebugSymbols>false</DebugSymbols>
         <DebugType>None</DebugType>
-        <RuntimeIdentifiers>win-x64;linux-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
+        <RuntimeIdentifiers>win-x64;linux-x64;linux-arm64;osx-arm64</RuntimeIdentifiers>
         <AssemblyName>link-validator</AssemblyName>
     </PropertyGroup>
 
