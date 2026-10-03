@@ -34,7 +34,7 @@ class Program
         var outputOption = new Option<string?>("--output", "Optional output file path for the sitemap");
         var diffOption = new Option<string?>("--diff", "Previous output file to compare against");
         var strictOption = new Option<bool>("--strict", () => false,
-            "Return error code if pages are missing or returning 400+ status codes");
+            "Return error code for internal 400+ responses or external 404/410 responses");
         var maxRetriesOption = new Option<int>("--max-external-retries", GetMaxExternalRetries,
             "Maximum retry attempts for external URLs returning 429 (default: 3)");
         var retryDelayOption = new Option<int>("--retry-delay-seconds", GetRetryDelaySeconds,
@@ -99,6 +99,9 @@ class Program
                 Console.WriteLine(markdown);
             }
 
+            // Defer the exit until after the --diff block so both strict paths emit their diagnostics.
+            var shouldFail = strict && results.HasStrictCrawlErrors;
+
             if (!string.IsNullOrEmpty(diff))
             {
                 var previousMarkdown = await File.ReadAllTextAsync(diff);
@@ -110,8 +113,13 @@ class Program
 
                 if (strict && hasErrors)
                 {
-                    Environment.Exit(1);
+                    shouldFail = true;
                 }
+            }
+
+            if (shouldFail)
+            {
+                Environment.Exit(1);
             }
         }, urlOption, outputOption, diffOption, strictOption, maxRetriesOption, retryDelayOption, cookieFileOption);
 

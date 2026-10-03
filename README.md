@@ -139,7 +139,7 @@ link-validator --url <URL> [OPTIONS]
 | `--url <URL>` | **Required.** The URL to crawl | - |
 | `--output <PATH>` | Save sitemap report to file | Print to stdout |
 | `--diff <PATH>` | Compare against previous sitemap file | - |
-| `--strict` | Return error code if broken links found | `false` |
+| `--strict` | Return error code for internal 400+ responses or external 404/410 responses | `false` |
 | `--cookie-file <PATH>` | Netscape/Mozilla cookie file for authenticated crawling | - |
 | `--max-external-retries <N>` | Max retries for external 429 responses | `3` |
 | `--retry-delay-seconds <N>` | Default retry delay (when no Retry-After header) | `10` |
@@ -251,7 +251,7 @@ link-validator --url https://aaronstannard.com
 link-validator --url https://aaronstannard.com --output sitemap.md
 ```
 
-**Strict mode for CI (fails on broken links):**
+**Strict mode for CI (fails on internal 400+ responses and external 404/410 responses):**
 ```bash
 link-validator --url https://aaronstannard.com --strict
 ```
@@ -354,9 +354,9 @@ LinkValidator --url https://example.com --output debug-sitemap.md
 
 ### Exit Codes
 
-- **0:** Success, all links are valid
+- **0:** Crawl completed without a strict-mode violation
 - **1:** Error occurred (invalid URL, network issues, etc.)
-- **1:** Broken links found (when using `--strict` mode)
+- **1:** Internal 400+ or external 404/410 responses found (when using `--strict` mode)
 
 ## 🤝 Contributing
 

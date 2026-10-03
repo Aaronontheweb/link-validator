@@ -692,7 +692,7 @@ All CI/CD examples can use these environment variables to configure LinkValidato
 - Consider running external link validation only on main branch builds
 
 ### 3. Error Handling
-- Use `--strict` mode in CI to fail builds on broken links
+- Use `--strict` mode in CI to fail builds on internal 400+ responses and external 404/410 responses
 - Implement proper cleanup of background processes
 - Store validation results as artifacts for debugging
 
