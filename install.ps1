@@ -34,30 +34,42 @@ $ErrorActionPreference = 'Stop'
 # Constants
 $REPO_OWNER = "Aaronontheweb"
 $REPO_NAME = "link-validator"
-$GITHUB_API_URL = "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME"
+$GITHUB_API_URL = if ($env:LINK_VALIDATOR_GITHUB_API_URL) {
+    $env:LINK_VALIDATOR_GITHUB_API_URL.TrimEnd('/')
+} else {
+    "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME"
+}
 
 # Determine platform
-if ($IsWindows -or $env:OS -eq "Windows_NT") {
+$IsWindowsPlatform = $env:OS -eq "Windows_NT"
+$IsLinuxPlatform = (Get-Variable IsLinux -ValueOnly -ErrorAction SilentlyContinue) -eq $true
+$IsMacOSPlatform = (Get-Variable IsMacOS -ValueOnly -ErrorAction SilentlyContinue) -eq $true
+
+if ($IsWindowsPlatform) {
     $Platform = "windows"
     $Architecture = "x64"
     $Extension = ".exe"
     $ArchiveExt = ".zip"
     $DefaultInstallPath = Join-Path $env:USERPROFILE ".linkvalidator"
-} elseif ($IsLinux) {
+} elseif ($IsLinuxPlatform) {
+    # Detect ARM64 vs x64 on Linux
+    $UnameM = uname -m
+    switch ($UnameM) {
+        { $_ -in "aarch64", "arm64" } { $Architecture = "arm64"; break }
+        { $_ -in "x86_64", "amd64" } { $Architecture = "x64"; break }
+        default { throw "Unsupported Linux architecture: $UnameM" }
+    }
     $Platform = "linux"
-    $Architecture = "x64"
     $Extension = ""
     $ArchiveExt = ".tar.gz"
     $DefaultInstallPath = Join-Path $env:HOME ".linkvalidator"
-} elseif ($IsMacOS) {
-    # Detect Apple Silicon vs Intel
+} elseif ($IsMacOSPlatform) {
     $UnameM = uname -m
-    if ($UnameM -eq "arm64") {
-        $Architecture = "arm64"
-    } else {
-        $Architecture = "x64"
+    if ($UnameM -ne "arm64" -and $UnameM -ne "aarch64") {
+        throw "Unsupported macOS architecture: $UnameM. Apple Silicon is required."
     }
     $Platform = "macos"
+    $Architecture = "arm64"
     $Extension = ""
     $ArchiveExt = ".tar.gz"
     $DefaultInstallPath = Join-Path $env:HOME ".linkvalidator"
@@ -73,16 +85,6 @@ if (-not $InstallPath) {
 Write-Host "LinkValidator Installer" -ForegroundColor Green
 Write-Host "Platform: $Platform-$Architecture" -ForegroundColor Cyan
 Write-Host "Install Path: $InstallPath" -ForegroundColor Cyan
-
-# Check for .NET runtime
-try {
-    $null = & dotnet --version 2>$null
-} catch {
-    Write-Host "`nWARNING: .NET runtime not detected!" -ForegroundColor Yellow
-    Write-Host "LinkValidator requires .NET 9 Runtime to run." -ForegroundColor Yellow
-    Write-Host "Download from: https://dotnet.microsoft.com/download/dotnet/9.0" -ForegroundColor Yellow
-    Write-Host "Continuing with installation...`n" -ForegroundColor Cyan
-}
 
 # Get latest release info or specific version
 if ($Version) {
@@ -147,7 +149,7 @@ try {
             chmod +x $DestPath
         }
         
-        Write-Host "✓ LinkValidator installed successfully!" -ForegroundColor Green
+        Write-Host "[OK] LinkValidator installed successfully!" -ForegroundColor Green
         Write-Host "Binary location: $DestPath" -ForegroundColor Cyan
         
         # Test installation
@@ -163,9 +165,9 @@ try {
                 $CurrentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
                 if ($CurrentPath -notlike "*$InstallPath*") {
                     [Environment]::SetEnvironmentVariable("PATH", "$CurrentPath;$InstallPath", "User")
-                    Write-Host "✓ Added to user PATH. Restart your terminal to use 'link-validator' command." -ForegroundColor Green
+                    Write-Host "[OK] Added to user PATH. Restart your terminal to use 'link-validator' command." -ForegroundColor Green
                 } else {
-                    Write-Host "✓ Already in PATH" -ForegroundColor Green
+                    Write-Host "[OK] Already in PATH" -ForegroundColor Green
                 }
             } else {
                 # Unix-like: Add to shell profile
@@ -177,9 +179,9 @@ try {
                 
                 if (-not (Test-Path $ShellProfile) -or -not (Get-Content $ShellProfile -ErrorAction SilentlyContinue | Select-String -Pattern ([regex]::Escape($InstallPath)))) {
                     Add-Content -Path $ShellProfile -Value $PathLine
-                    Write-Host "✓ Added to $ShellProfile. Run 'source $ShellProfile' or restart your terminal." -ForegroundColor Green
+                    Write-Host "[OK] Added to $ShellProfile. Run 'source $ShellProfile' or restart your terminal." -ForegroundColor Green
                 } else {
-                    Write-Host "✓ Already in shell profile" -ForegroundColor Green
+                    Write-Host "[OK] Already in shell profile" -ForegroundColor Green
                 }
             }
         } else {
