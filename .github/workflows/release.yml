@@ -17,16 +17,24 @@ jobs:
         include:
           - os: ubuntu-24.04
             rid: linux-x64
+            installer-platform: linux-x64
             archive-name: 'link-validator-linux-x64'
             archive-ext: tar.gz
           - os: ubuntu-24.04-arm
             rid: linux-arm64
+            installer-platform: linux-arm64
             archive-name: 'link-validator-linux-arm64'
             archive-ext: tar.gz
           - os: windows-latest
             rid: win-x64
+            installer-platform: windows-x64
             archive-name: 'link-validator-windows-x64'
             archive-ext: zip
+          - os: macos-15
+            rid: osx-arm64
+            installer-platform: macos-arm64
+            archive-name: 'link-validator-macos-arm64'
+            archive-ext: tar.gz
 
     steps:
     - name: Checkout
@@ -54,15 +62,35 @@ jobs:
           -p:PublishAot=true \
           -o publish/${{ matrix.rid }}
 
-    - name: Package archive
+    - name: Package Unix archive
+      if: runner.os != 'Windows'
       shell: bash
       run: |
         cd publish/${{ matrix.rid }}
-        if [ "${{ matrix.rid }}" == "win-x64" ]; then
-          zip -r ../../${{ matrix.archive-name }}.zip link-validator.exe
-        else
-          tar -czf ../../${{ matrix.archive-name }}.tar.gz link-validator
-        fi
+        tar -czf ../../${{ matrix.archive-name }}.${{ matrix.archive-ext }} link-validator
+
+    - name: Package Windows archive
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Compress-Archive `
+          -Path publish/${{ matrix.rid }}/link-validator.exe `
+          -DestinationPath ${{ matrix.archive-name }}.${{ matrix.archive-ext }}
+
+    - name: Validate Unix archive through installer
+      if: runner.os != 'Windows'
+      shell: bash
+      env:
+        LINK_VALIDATOR_SMOKE_ARCHIVE: ${{ github.workspace }}/${{ matrix.archive-name }}.${{ matrix.archive-ext }}
+        LINK_VALIDATOR_SMOKE_PLATFORM: ${{ matrix.installer-platform }}
+      run: bash scripts/smoke/install-smoke.sh
+
+    - name: Validate Windows archive through installer
+      if: runner.os == 'Windows'
+      shell: pwsh
+      env:
+        LINK_VALIDATOR_SMOKE_ARCHIVE: ${{ github.workspace }}/${{ matrix.archive-name }}.${{ matrix.archive-ext }}
+      run: ./scripts/smoke/install-smoke.ps1
 
     - name: Upload artifact
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -71,7 +99,7 @@ jobs:
         path: |
           ${{ matrix.archive-name }}.zip
           ${{ matrix.archive-name }}.tar.gz
-        if-no-files-found: ignore
+        if-no-files-found: error
 
   release:
     name: Create Release

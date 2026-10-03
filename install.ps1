@@ -34,24 +34,42 @@ $ErrorActionPreference = 'Stop'
 # Constants
 $REPO_OWNER = "Aaronontheweb"
 $REPO_NAME = "link-validator"
-$GITHUB_API_URL = "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME"
+$GITHUB_API_URL = if ($env:LINK_VALIDATOR_GITHUB_API_URL) {
+    $env:LINK_VALIDATOR_GITHUB_API_URL.TrimEnd('/')
+} else {
+    "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME"
+}
 
 # Determine platform
-if ($IsWindows -or $env:OS -eq "Windows_NT") {
+$IsWindowsPlatform = $env:OS -eq "Windows_NT"
+$IsLinuxPlatform = (Get-Variable IsLinux -ValueOnly -ErrorAction SilentlyContinue) -eq $true
+$IsMacOSPlatform = (Get-Variable IsMacOS -ValueOnly -ErrorAction SilentlyContinue) -eq $true
+
+if ($IsWindowsPlatform) {
     $Platform = "windows"
     $Architecture = "x64"
     $Extension = ".exe"
     $ArchiveExt = ".zip"
     $DefaultInstallPath = Join-Path $env:USERPROFILE ".linkvalidator"
-} elseif ($IsLinux) {
+} elseif ($IsLinuxPlatform) {
     # Detect ARM64 vs x64 on Linux
     $UnameM = uname -m
-    if ($UnameM -eq "aarch64" -or $UnameM -eq "arm64") {
-        $Architecture = "arm64"
-    } else {
-        $Architecture = "x64"
+    switch ($UnameM) {
+        { $_ -in "aarch64", "arm64" } { $Architecture = "arm64"; break }
+        { $_ -in "x86_64", "amd64" } { $Architecture = "x64"; break }
+        default { throw "Unsupported Linux architecture: $UnameM" }
     }
     $Platform = "linux"
+    $Extension = ""
+    $ArchiveExt = ".tar.gz"
+    $DefaultInstallPath = Join-Path $env:HOME ".linkvalidator"
+} elseif ($IsMacOSPlatform) {
+    $UnameM = uname -m
+    if ($UnameM -ne "arm64" -and $UnameM -ne "aarch64") {
+        throw "Unsupported macOS architecture: $UnameM. Apple Silicon is required."
+    }
+    $Platform = "macos"
+    $Architecture = "arm64"
     $Extension = ""
     $ArchiveExt = ".tar.gz"
     $DefaultInstallPath = Join-Path $env:HOME ".linkvalidator"
@@ -67,13 +85,6 @@ if (-not $InstallPath) {
 Write-Host "LinkValidator Installer" -ForegroundColor Green
 Write-Host "Platform: $Platform-$Architecture" -ForegroundColor Cyan
 Write-Host "Install Path: $InstallPath" -ForegroundColor Cyan
-
-# Check for .NET runtime (AOT binaries are self-contained, so this is informational)
-try {
-    $null = & dotnet --version 2>$null
-} catch {
-    Write-Host "`nNative AOT build — no .NET runtime required." -ForegroundColor Cyan
-}
 
 # Get latest release info or specific version
 if ($Version) {

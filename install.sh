@@ -8,7 +8,7 @@ set -euo pipefail
 # Configuration
 REPO_OWNER="Aaronontheweb"
 REPO_NAME="link-validator"
-GITHUB_API_URL="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}"
+GITHUB_API_URL="${LINK_VALIDATOR_GITHUB_API_URL:-https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}}"
 DEFAULT_INSTALL_DIR="${HOME}/.linkvalidator"
 
 # Colors
@@ -64,6 +64,7 @@ detect_platform() {
     # Detect OS
     case "$(uname -s)" in
         Linux*)     os="linux" ;;
+        Darwin*)    os="macos" ;;
         *)          
             log_error "Unsupported operating system: $(uname -s)"
             exit 1
@@ -71,14 +72,24 @@ detect_platform() {
     esac
     
     # Detect architecture
-    case "$(uname -m)" in
-        x86_64|amd64)   arch="x64" ;;
-        arm64|aarch64)  arch="arm64" ;;
-        *)
-            log_error "Unsupported architecture $(uname -m)"
-            exit 1
-            ;;
-    esac
+    if [[ "$os" == "macos" ]]; then
+        case "$(uname -m)" in
+            arm64|aarch64)  arch="arm64" ;;
+            *)
+                log_error "Unsupported macOS architecture: $(uname -m). Apple Silicon is required."
+                exit 1
+                ;;
+        esac
+    else
+        case "$(uname -m)" in
+            x86_64|amd64)   arch="x64" ;;
+            arm64|aarch64)  arch="arm64" ;;
+            *)
+                log_error "Unsupported architecture: $(uname -m)"
+                exit 1
+                ;;
+        esac
+    fi
     
     echo "${os}-${arch}"
 }
@@ -120,7 +131,11 @@ download_and_install() {
     # Find appropriate asset
     local asset_name="link-validator-${platform}.tar.gz"
     local download_url
-    download_url=$(echo "$release_json" | grep -o '"browser_download_url":"[^"]*"' | grep "$asset_name" | sed 's/.*"browser_download_url":"\([^"]*\)".*/\1/' | head -1)
+    download_url=$(echo "$release_json" \
+        | grep -o '"browser_download_url"[[:space:]]*:[[:space:]]*"[^"]*"' \
+        | grep "$asset_name" \
+        | sed 's/.*"browser_download_url"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' \
+        | head -1)
     
     if [[ -z "$download_url" ]]; then
         log_error "Could not find asset for platform: $platform"
@@ -256,11 +271,6 @@ main() {
     platform=$(detect_platform)
     log_info "Platform: $platform"
     log_info "Install directory: $install_dir"
-    
-    # Check for .NET runtime
-    if ! command -v dotnet >/dev/null 2>&1; then
-        log_info "Native AOT build — no .NET runtime required."
-    fi
     
     # Check dependencies
     for cmd in curl tar grep sed; do
