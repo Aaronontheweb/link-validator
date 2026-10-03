@@ -99,6 +99,13 @@ class Program
                 Console.WriteLine(markdown);
             }
 
+            // --strict fails the run whenever the crawl found broken internal pages (missing or 400+),
+            // independent of whether --diff is supplied. This is what the option's help text promises.
+            if (strict && results.HasInternalCrawlErrors)
+            {
+                Environment.Exit(1);
+            }
+
             if (!string.IsNullOrEmpty(diff))
             {
                 var previousMarkdown = await File.ReadAllTextAsync(diff);

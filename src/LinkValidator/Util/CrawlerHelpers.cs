@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System.Collections.Immutable;
+using System.Net;
 using Akka.Actor;
 using LinkValidator.Actors;
 
@@ -19,7 +20,15 @@ namespace LinkValidator.Util;
 public sealed record CrawlReport(
     AbsoluteUri RootUri,
     ImmutableSortedDictionary<string, CrawlRecord> InternalLinks,
-    ImmutableSortedDictionary<string, CrawlRecord> ExternalLinks);
+    ImmutableSortedDictionary<string, CrawlRecord> ExternalLinks)
+{
+    /// <summary>
+    /// True when the crawl encountered any internal page that is missing or returned a 400+ status
+    /// code. This is the condition that <c>--strict</c> uses to fail the run.
+    /// </summary>
+    public bool HasInternalCrawlErrors => InternalLinks.Any(
+        x => (int)x.Value.StatusCode >= (int)HttpStatusCode.BadRequest);
+}
 
 public static class CrawlerHelper
 {
