@@ -1,4 +1,4 @@
-﻿// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 // <copyright file="UriHelpers.cs">
 //      Copyright (C) 2025 - 2025 Aaron Stannard <https://aaronstannard.com/>
 // </copyright>
@@ -103,19 +103,32 @@ public static class UriHelpers
             resolvedUri = builder.Uri;
         }
 
-        return new AbsoluteUri(RemoveQueryAndFragment(resolvedUri));
+        return new AbsoluteUri(RemoveFragment(resolvedUri));
     }
 
 
-    public static Uri RemoveQueryAndFragment(Uri uri)
+    public static Uri RemoveFragment(Uri uri)
     {
         if (uri == null)
         {
             throw new ArgumentNullException(nameof(uri));
         }
 
-        // Rebuild the URI without the Query and Fragment parts
-        return new Uri(uri.GetLeftPart(UriPartial.Path));
+        // Rebuild the URI without the Fragment part only. The Query must be
+        // preserved because it is sent with the HTTP request and some servers
+        // return 404 for the bare path (e.g. https://www.youtube.com/playlist?list=...).
+        // Fragments are client-side only and never sent to the server, so they
+        // are stripped to avoid duplicate crawl entries for the same resource.
+        if (string.IsNullOrEmpty(uri.Fragment))
+        {
+            return uri;
+        }
+
+        var builder = new UriBuilder(uri)
+        {
+            Fragment = string.Empty
+        };
+        return builder.Uri;
     }
 
 

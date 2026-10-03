@@ -144,6 +144,41 @@ public class UriHelperSpecs
         Assert.Equal(expected, result);
     }
 
+    [Theory]
+    [InlineData("https://example.com/path?foo=bar", "https://example.com/path?foo=bar")]
+    [InlineData("https://www.youtube.com/playlist?list=PLsYDwCTwskWduFC6QwS8lm6xlCnvejmHV", "https://www.youtube.com/playlist?list=PLsYDwCTwskWduFC6QwS8lm6xlCnvejmHV")]
+    // internal URLs are normalized to the base URI's scheme (https)
+    [InlineData("http://example.com/some/path?query=1#fragment", "https://example.com/some/path?query=1")]
+    [InlineData("http://example.com/some/path#fragment", "https://example.com/some/path")]
+    public void ToAbsoluteUri_should_preserve_query_and_strip_fragment(string rawUri, string expected)
+    {
+        // Arrange
+        var baseUri = new AbsoluteUri(new Uri("https://example.com"));
+
+        // Act
+        var result = UriHelpers.ToAbsoluteUri(baseUri, rawUri);
+
+        // Assert
+        Assert.Equal(new AbsoluteUri(new Uri(expected)), result);
+    }
+
+    [Theory]
+    [InlineData("http://example.com/some/path", "http://example.com/some/path")]
+    [InlineData("http://example.com/some/path?query=1", "http://example.com/some/path?query=1")]
+    [InlineData("http://example.com/some/path#fragment", "http://example.com/some/path")]
+    [InlineData("http://example.com/some/path?query=1#fragment", "http://example.com/some/path?query=1")]
+    public void RemoveFragment_should_preserve_query_and_strip_fragment(string input, string expected)
+    {
+        // Arrange
+        var uri = new Uri(input);
+
+        // Act
+        var result = UriHelpers.RemoveFragment(uri);
+
+        // Assert
+        Assert.Equal(expected, result.ToString());
+    }
+
     public static readonly TheoryData<AbsoluteUri, string, RelativeUri> ToRelativeUriData = new()
     {
         {
