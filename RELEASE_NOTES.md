@@ -1,10 +1,10 @@
 #### 0.5.0 October 3rd 2026 ####
 
 **New Features:**
-- **Native AOT Single-File Binaries** - Rewrote the release pipeline to publish self-contained Native AOT binaries for linux-x64, linux-arm64, and win-x64 ([#187](https://github.com/Aaronontheweb/link-validator/pull/187))
+- **Native AOT Single-File Binaries** - Rewrote the release pipeline to publish self-contained Native AOT binaries for linux-x64, linux-arm64, win-x64, and **osx-arm64 (Apple Silicon)** ([#187](https://github.com/Aaronontheweb/link-validator/pull/187))
   - No .NET runtime required to run the CLI
   - Uses per-architecture hosted runners since Native AOT cannot cross-compile ARM64 from an x64 host
-  - macOS assets removed from the release matrix
+  - macOS builds ship as `link-validator-macos-arm64`
 
 **Bug Fixes:**
 - **`--strict` Now Fails on Broken Internal Links** - Fixed so `--strict` exits non-zero when the crawl finds broken internal links, independent of `--diff` ([#188](https://github.com/Aaronontheweb/link-validator/pull/188))
