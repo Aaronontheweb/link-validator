@@ -1,3 +1,20 @@
+#### 0.5.0 October 3rd 2026 ####
+
+**New Features:**
+- **Native AOT Single-File Binaries** - Rewrote the release pipeline to publish self-contained Native AOT binaries for linux-x64, linux-arm64, win-x64, and **osx-arm64 (Apple Silicon)** ([#187](https://github.com/Aaronontheweb/link-validator/pull/187))
+  - No .NET runtime required to run the CLI
+  - Uses per-architecture hosted runners since Native AOT cannot cross-compile ARM64 from an x64 host
+  - macOS builds ship as `link-validator-macos-arm64`
+
+**Bug Fixes:**
+- **`--strict` Now Fails on Broken Internal Links** - Fixed so `--strict` exits non-zero when the crawl finds broken internal links, independent of `--diff` ([#188](https://github.com/Aaronontheweb/link-validator/pull/188))
+  - Previously `--strict` only affected the exit code when `--diff` was also passed
+  - External link failures are intentionally excluded so common crawler-blocking hosts don't break CI
+
+**Dependencies:**
+- Upgraded to Akka.NET 1.6 beta for Native AOT support ([#183](https://github.com/Aaronontheweb/link-validator/pull/183))
+- Updated HtmlAgilityPack from 1.12.3 to 1.13.0 ([#175](https://github.com/Aaronontheweb/link-validator/pull/175))
+
 #### 0.2.0 February 17th 2026 ####
 
 **New Features:**
